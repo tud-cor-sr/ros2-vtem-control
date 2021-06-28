@@ -21,6 +21,26 @@ find_package(ament_cmake REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
+find_package (Eigen3 REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIRS})
+
+find_package( Boost REQUIRED COMPONENTS program_options system thread REQUIRED)
+include_directories( ${Boost_INCLUDE_DIRS} )
+
+# https://github.com/AgileManufacturing/Avans/blob/master/cmake/FindModbus.cmake
+find_package(PkgConfig)
+pkg_check_modules(PC_MODBUS QUIET libmodbus)
+set(MODBUS_DEFINITIONS ${PC_LIBMODBUS_CFLAGS_OTHER})
+find_path(MODBUS_INCLUDE_DIRS modbus/modbus.h
+          HINTS ${PC_LIBMODBUS_INCLUDEDIR} ${PC_LIBMODBUS_INCLUDE_DIRS}
+          PATH_SUFFIXES modbus )
+find_library(MODBUS_LIBRARIES NAMES modbus libmodbus
+             HINTS ${PC_LIBMODBUS_LIBDIR} ${PC_LIBMODBUS_LIBRARY_DIRS} )
+             include(FindPackageHandleStandardArgs)
+# handle the QUIETLY and REQUIRED arguments and set MODBUS_FOUND to TRUE
+# if all listed variables are TRUE
+find_package_handle_standard_args(MODBUS "Could not find libmodbus" MODBUS_LIBRARIES MODBUS_INCLUDE_DIRS)
+
 add_executable(pressure_regulator_node src/pressure_regulator_node.cpp)
 target_include_directories(pressure_regulator_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
