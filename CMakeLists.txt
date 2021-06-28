@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 project(vtem_control)
 
+# include directories
+include_directories(include/vtem_control include/vtem_control/modbus)
+
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99)
@@ -24,8 +27,8 @@ find_package(ament_cmake REQUIRED)
 find_package (Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIRS})
 
-find_package( Boost REQUIRED COMPONENTS program_options system thread REQUIRED)
-include_directories( ${Boost_INCLUDE_DIRS} )
+find_package(Boost REQUIRED COMPONENTS program_options system thread REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS} )
 
 # https://github.com/AgileManufacturing/Avans/blob/master/cmake/FindModbus.cmake
 find_package(PkgConfig)
@@ -45,6 +48,10 @@ add_executable(pressure_regulator_node src/pressure_regulator_node.cpp)
 target_include_directories(pressure_regulator_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
+
+add_library(VtemControl SHARED src/VtemControl.cpp)
+target_include_directories(VtemControl PRIVATE ${MODBUS_DIRS})
+target_link_libraries(VtemControl -pthread ${MODBUS_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS pressure_regulator_node
   DESTINATION lib/${PROJECT_NAME})

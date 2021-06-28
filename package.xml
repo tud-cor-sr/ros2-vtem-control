@@ -8,6 +8,7 @@
   <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <build_depend>pkg-config</build_depend>
   <build_depend>libboost-all-dev</build_depend>
   <build_depend>libeigen3-dev</build_depend>
   <build_depend>libmodbus-dev</build_depend>
