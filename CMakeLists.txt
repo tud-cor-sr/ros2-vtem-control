@@ -44,11 +44,19 @@ find_library(MODBUS_LIBRARIES NAMES modbus libmodbus
 # if all listed variables are TRUE
 find_package_handle_standard_args(MODBUS "Could not find libmodbus" MODBUS_LIBRARIES MODBUS_INCLUDE_DIRS)
 
+# add custom messages
+find_package(rosidl_default_generators REQUIRED)
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/InputPressures.msg"
+)
+
+# add executables
 add_executable(pressure_regulator_node src/pressure_regulator_node.cpp)
 target_include_directories(pressure_regulator_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
+# add libraries
 add_library(VtemControl SHARED src/VtemControl.cpp)
 target_include_directories(VtemControl PRIVATE ${MODBUS_DIRS})
 target_link_libraries(VtemControl -pthread ${MODBUS_LIBRARIES} ${Boost_LIBRARIES})
