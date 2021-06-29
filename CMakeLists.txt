@@ -53,7 +53,7 @@ target_include_directories(pressure_regulator_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
-add_executable(valve_test test/valve_test.cpp src/VtemControl.cpp)
+add_executable(valve_test examples/valve_test.cpp src/VtemControl.cpp)
 target_include_directories(valve_test PRIVATE ${MODBUS_DIRS})
 target_link_libraries(valve_test ${MODBUS_LIBRARIES} )
 
