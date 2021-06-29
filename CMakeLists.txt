@@ -27,9 +27,6 @@ find_package(ament_cmake REQUIRED)
 find_package (Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIRS})
 
-find_package(Boost REQUIRED COMPONENTS program_options system thread REQUIRED)
-include_directories(${Boost_INCLUDE_DIRS} )
-
 # https://github.com/AgileManufacturing/Avans/blob/master/cmake/FindModbus.cmake
 find_package(PkgConfig)
 pkg_check_modules(PC_MODBUS QUIET libmodbus)
@@ -63,7 +60,7 @@ target_link_libraries(valve_test ${MODBUS_LIBRARIES} )
 # add libraries
 add_library(VtemControl SHARED src/VtemControl.cpp)
 target_include_directories(VtemControl PRIVATE ${MODBUS_DIRS})
-target_link_libraries(VtemControl -pthread ${MODBUS_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(VtemControl -pthread ${MODBUS_LIBRARIES})
 
 install(TARGETS pressure_regulator_node
   DESTINATION lib/${PROJECT_NAME})
