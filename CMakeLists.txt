@@ -24,6 +24,7 @@ endif()
 if(BUILD_WITH_ROS2)
   # find ROS dependencies
   find_package(ament_cmake REQUIRED)
+  find_package(rclcpp REQUIRED)
 endif()
 
 find_package (Eigen3 REQUIRED)
@@ -58,6 +59,10 @@ endif()
 # add ROS executables
 if(BUILD_WITH_ROS2)
   add_executable(pressure_regulator_node src/pressure_regulator_node.cpp)
+  ament_target_dependencies(pressure_regulator_node rclcpp)
+  # to be able to use InputPressures.msg in the same package
+  rosidl_target_interfaces(pressure_regulator_node
+      ${PROJECT_NAME} "rosidl_typesupport_cpp")
   target_include_directories(pressure_regulator_node PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
