@@ -50,6 +50,7 @@ endif()
 
 # add ROS executables
 if(BUILD_WITH_ROS2)
+  # input pressures subscriber node
   add_executable(input_pressures_sub_node src/input_pressures_sub_node.cpp src/VtemControl.cpp)
   ament_target_dependencies(input_pressures_sub_node rclcpp)
   # to be able to use FluidPressures.msg in the same package
@@ -58,8 +59,18 @@ if(BUILD_WITH_ROS2)
   target_include_directories(input_pressures_sub_node PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
-  target_include_directories(input_pressures_sub_node PRIVATE)
   target_link_libraries(input_pressures_sub_node ${MODBUS_LIBRARIES})
+
+  # output pressures subscriber node
+  add_executable(output_pressures_pub_node src/output_pressures_pub_node.cpp src/VtemControl.cpp)
+  ament_target_dependencies(output_pressures_pub_node rclcpp)
+  # to be able to use FluidPressures.msg in the same package
+  rosidl_target_interfaces(output_pressures_pub_node
+      ${PROJECT_NAME} "rosidl_typesupport_cpp")
+  target_include_directories(output_pressures_pub_node PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>)
+  target_link_libraries(output_pressures_pub_node ${MODBUS_LIBRARIES})
 endif()
 
 # add other executables
@@ -75,6 +86,7 @@ target_link_libraries(VtemControl -pthread ${MODBUS_LIBRARIES})
 if(BUILD_WITH_ROS2)
   # Install Cpp executables
   install(TARGETS input_pressures_sub_node DESTINATION lib/${PROJECT_NAME})
+  install(TARGETS output_pressures_pub_node DESTINATION lib/${PROJECT_NAME})
   
   # Install Python package
   # ament_python_install_package(${PROJECT_NAME})
