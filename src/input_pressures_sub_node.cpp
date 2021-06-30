@@ -12,17 +12,17 @@ public:
   vtem_control::VtemControl vtemControl_;
 
   InputPressuresSubscriber()
-  : Node("input_pressure_subscriber")
+  : Node("input_pressures_sub")
   {
     // VTEM input pressures topic
-    this->declare_parameter<std::string>("vtem_input_pressures_topic", "vtem_control/input_pressures");
-    this->get_parameter("vtem_input_pressures_topic", vtem_input_pressures_topic_);
+    this->declare_parameter<std::string>("vtem_control/input_pressures_topic", "vtem_control/input_pressures");
+    this->get_parameter("vtem_control/input_pressures_topic", vtem_input_pressures_topic_);
 
     // VTEM modbus network information
-    this->declare_parameter<std::string>("vtem_node", "192.168.1.101");
-    this->declare_parameter<std::string>("vtem_service", "502");
-    this->get_parameter("vtem_node", vtem_node_);
-    this->get_parameter("vtem_service", vtem_service_);
+    this->declare_parameter<std::string>("vtem_control/node", "192.168.1.101");
+    this->declare_parameter<std::string>("vtem_control/service", "502");
+    this->get_parameter("vtem_control/node", vtem_node_);
+    this->get_parameter("vtem_control/service", vtem_service_);
 
     subscription_ = this->create_subscription<vtem_control::msg::FluidPressures>(
       vtem_input_pressures_topic_.c_str(), 10, std::bind(&InputPressuresSubscriber::topic_callback, this, _1));
