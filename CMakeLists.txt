@@ -48,8 +48,10 @@ find_package_handle_standard_args(MODBUS "Could not find libmodbus" MODBUS_LIBRA
 if(BUILD_WITH_ROS2)
 # add custom ROS messages
   find_package(rosidl_default_generators REQUIRED)
+  find_package(std_msgs REQUIRED)
   rosidl_generate_interfaces(${PROJECT_NAME}
     "msg/InputPressures.msg"
+    DEPENDENCIES std_msgs
   )
 endif()
 
