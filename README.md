@@ -7,8 +7,19 @@ ROS2 package for the control of the Festo VTEM motion terminal. Adapted from htt
 colcon build --packages-select vtem_control
 ```
 ### Run
+
+#### Run subscriber node to regulate pressure
 ```bash
 ros2 run vtem_control pressure_regulator_node
+```
+#### Run valve test
+```bash
+ros2 run vtem_control valve_test
+```
+
+### Run python publisher
+```bash
+python3 scripts/python_pub.py
 ```
 
 ## C++ package without ROS2 dependencies
