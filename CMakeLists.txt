@@ -18,15 +18,19 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# find dependencies
-find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+# to we want to build with ROS?
+set(BUILD_WITH_ROS2 true)
+
+if(BUILD_WITH_ROS2)
+  # find ROS dependencies
+  find_package(ament_cmake REQUIRED)
+endif()
 
 find_package (Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIRS})
 
+# message(STATUS ${CMAKE_MODULE_PATH})
+# find_package(Modbus REQUIRED)
 # https://github.com/AgileManufacturing/Avans/blob/master/cmake/FindModbus.cmake
 find_package(PkgConfig)
 pkg_check_modules(PC_MODBUS QUIET libmodbus)
@@ -41,19 +45,24 @@ find_library(MODBUS_LIBRARIES NAMES modbus libmodbus
 # if all listed variables are TRUE
 find_package_handle_standard_args(MODBUS "Could not find libmodbus" MODBUS_LIBRARIES MODBUS_INCLUDE_DIRS)
 
-# add custom messages
-find_package(rosidl_default_generators REQUIRED)
-rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/InputPressures.msg"
-)
+if(BUILD_WITH_ROS2)
+# add custom ROS messages
+  find_package(rosidl_default_generators REQUIRED)
+  rosidl_generate_interfaces(${PROJECT_NAME}
+    "msg/InputPressures.msg"
+  )
+endif()
 
-# add executables
-add_executable(pressure_regulator_node src/pressure_regulator_node.cpp)
-target_include_directories(pressure_regulator_node PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>)
+# add ROS executables
+if(BUILD_WITH_ROS2)
+  add_executable(pressure_regulator_node src/pressure_regulator_node.cpp)
+  target_include_directories(pressure_regulator_node PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>)
+endif()
 
-add_executable(valve_test examples/valve_test.cpp src/VtemControl.cpp)
+# add other executables
+add_executable(valve_test scripts/valve_test.cpp src/VtemControl.cpp)
 target_include_directories(valve_test PRIVATE ${MODBUS_DIRS})
 target_link_libraries(valve_test ${MODBUS_LIBRARIES} )
 
@@ -62,10 +71,21 @@ add_library(VtemControl SHARED src/VtemControl.cpp)
 target_include_directories(VtemControl PRIVATE ${MODBUS_DIRS})
 target_link_libraries(VtemControl -pthread ${MODBUS_LIBRARIES})
 
-install(TARGETS pressure_regulator_node
-  DESTINATION lib/${PROJECT_NAME})
+if(BUILD_WITH_ROS2)
+  # Install Cpp executables
+  install(TARGETS pressure_regulator_node DESTINATION lib/${PROJECT_NAME})
+  
+  # Install Python package
+  # ament_python_install_package(${PROJECT_NAME})
 
-if(BUILD_TESTING)
+  # Install Python executables
+  install(PROGRAMS
+  scripts/python_pub.py
+  DESTINATION lib/${PROJECT_NAME}
+  )
+endif()
+
+if(BUILD_WITH_ROS2 AND BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
   # uncomment the line when a copyright and license is not present in all source files
@@ -76,4 +96,6 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-ament_package()
+if(BUILD_WITH_ROS2)
+  ament_package()
+endif()
