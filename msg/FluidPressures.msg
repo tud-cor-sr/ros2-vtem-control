@@ -3,4 +3,4 @@
 std_msgs/Header header # timestamp of the measurement
 
 # Absolute demanded pressure in Pascals.
-float64[] data 
+sensor_msgs/FluidPressure[] data

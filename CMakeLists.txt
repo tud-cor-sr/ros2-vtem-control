@@ -50,9 +50,10 @@ if(BUILD_WITH_ROS2)
 # add custom ROS messages
   find_package(rosidl_default_generators REQUIRED)
   find_package(std_msgs REQUIRED)
+  find_package(sensor_msgs REQUIRED)
   rosidl_generate_interfaces(${PROJECT_NAME}
-    "msg/InputPressures.msg"
-    DEPENDENCIES std_msgs
+    "msg/FluidPressures.msg"
+    DEPENDENCIES std_msgs sensor_msgs
   )
 endif()
 
@@ -60,7 +61,7 @@ endif()
 if(BUILD_WITH_ROS2)
   add_executable(pressure_regulator_sub_node src/pressure_regulator_sub_node.cpp src/VtemControl.cpp)
   ament_target_dependencies(pressure_regulator_sub_node rclcpp)
-  # to be able to use InputPressures.msg in the same package
+  # to be able to use FluidPressures.msg in the same package
   rosidl_target_interfaces(pressure_regulator_sub_node
       ${PROJECT_NAME} "rosidl_typesupport_cpp")
   target_include_directories(pressure_regulator_sub_node PUBLIC
