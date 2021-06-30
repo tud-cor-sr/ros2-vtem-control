@@ -10,7 +10,7 @@ colcon build --packages-select vtem_control
 
 #### Run subscriber node to regulate pressure
 ```bash
-ros2 run vtem_control pressure_regulator_sub_node
+ros2 run vtem_control input_pressures_sub_node
 ```
 #### Run valve test
 ```bash

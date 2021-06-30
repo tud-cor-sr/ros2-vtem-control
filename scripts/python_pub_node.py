@@ -11,7 +11,7 @@ class VtemControlPublisher(Node):
     def __init__(self):
         super().__init__('vtem_control_publisher')
 
-        self.declare_parameter('vtem_input_pressures_topic', 'vtem_input_pressures')
+        self.declare_parameter('vtem_input_pressures_topic', 'vtem_control/input_pressures')
 
         vtem_input_pressures_topic = self.get_parameter('vtem_input_pressures_topic').get_parameter_value().string_value
         self.publisher_ = self.create_publisher(FluidPressures, vtem_input_pressures_topic, 10)

@@ -15,7 +15,7 @@ public:
   : Node("input_pressure_subscriber")
   {
     // VTEM input pressures topic
-    this->declare_parameter<std::string>("vtem_input_pressures_topic", "vtem_input_pressures");
+    this->declare_parameter<std::string>("vtem_input_pressures_topic", "vtem_control/input_pressures");
     this->get_parameter("vtem_input_pressures_topic", vtem_input_pressures_topic_);
 
     // VTEM modbus network information
