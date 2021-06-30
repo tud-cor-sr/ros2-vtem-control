@@ -4,8 +4,11 @@ project(vtem_control)
 # to we want to build with ROS?
 option(BUILD_WITH_ROS2 "Do you want to build the package with ROS2 dependencies?" true)
 
+# set cmake module path
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
 # include directories
-include_directories(include/vtem_control include/vtem_control/modbus)
+include_directories(include/vtem_control)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -31,20 +34,8 @@ find_package (Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIRS})
 
 # message(STATUS ${CMAKE_MODULE_PATH})
-# find_package(Modbus REQUIRED)
-# https://github.com/AgileManufacturing/Avans/blob/master/cmake/FindModbus.cmake
-find_package(PkgConfig)
-pkg_check_modules(PC_MODBUS QUIET libmodbus)
-set(MODBUS_DEFINITIONS ${PC_LIBMODBUS_CFLAGS_OTHER})
-find_path(MODBUS_INCLUDE_DIRS modbus/modbus.h
-          HINTS ${PC_LIBMODBUS_INCLUDEDIR} ${PC_LIBMODBUS_INCLUDE_DIRS}
-          PATH_SUFFIXES modbus )
-find_library(MODBUS_LIBRARIES NAMES modbus libmodbus
-             HINTS ${PC_LIBMODBUS_LIBDIR} ${PC_LIBMODBUS_LIBRARY_DIRS} )
-             include(FindPackageHandleStandardArgs)
-# handle the QUIETLY and REQUIRED arguments and set MODBUS_FOUND to TRUE
-# if all listed variables are TRUE
-find_package_handle_standard_args(MODBUS "Could not find libmodbus" MODBUS_LIBRARIES MODBUS_INCLUDE_DIRS)
+find_package(Modbus REQUIRED)
+include_directories(${MODBUS_INCLUDE_DIR})
 
 if(BUILD_WITH_ROS2)
 # add custom ROS messages
@@ -67,18 +58,18 @@ if(BUILD_WITH_ROS2)
   target_include_directories(pressure_regulator_sub_node PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
-  target_include_directories(pressure_regulator_sub_node PRIVATE ${MODBUS_DIRS})
-  target_link_libraries(pressure_regulator_sub_node ${MODBUS_LIBRARIES} )
+  target_include_directories(pressure_regulator_sub_node PRIVATE)
+  target_link_libraries(pressure_regulator_sub_node ${MODBUS_LIBRARIES})
 endif()
 
 # add other executables
 add_executable(valve_test scripts/valve_test.cpp src/VtemControl.cpp)
-target_include_directories(valve_test PRIVATE ${MODBUS_DIRS})
+target_include_directories(valve_test PRIVATE)
 target_link_libraries(valve_test ${MODBUS_LIBRARIES} )
 
 # add libraries
 add_library(VtemControl SHARED src/VtemControl.cpp)
-target_include_directories(VtemControl PRIVATE ${MODBUS_DIRS})
+target_include_directories(VtemControl PRIVATE)
 target_link_libraries(VtemControl -pthread ${MODBUS_LIBRARIES})
 
 if(BUILD_WITH_ROS2)
