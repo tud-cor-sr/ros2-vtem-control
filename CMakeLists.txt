@@ -58,12 +58,12 @@ endif()
 
 # add ROS executables
 if(BUILD_WITH_ROS2)
-  add_executable(pressure_regulator_node src/pressure_regulator_node.cpp)
-  ament_target_dependencies(pressure_regulator_node rclcpp)
+  add_executable(pressure_regulator_sub_node src/pressure_regulator_sub_node.cpp)
+  ament_target_dependencies(pressure_regulator_sub_node rclcpp)
   # to be able to use InputPressures.msg in the same package
-  rosidl_target_interfaces(pressure_regulator_node
+  rosidl_target_interfaces(pressure_regulator_sub_node
       ${PROJECT_NAME} "rosidl_typesupport_cpp")
-  target_include_directories(pressure_regulator_node PUBLIC
+  target_include_directories(pressure_regulator_sub_node PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
 endif()
@@ -80,14 +80,14 @@ target_link_libraries(VtemControl -pthread ${MODBUS_LIBRARIES})
 
 if(BUILD_WITH_ROS2)
   # Install Cpp executables
-  install(TARGETS pressure_regulator_node DESTINATION lib/${PROJECT_NAME})
+  install(TARGETS pressure_regulator_sub_node DESTINATION lib/${PROJECT_NAME})
   
   # Install Python package
   # ament_python_install_package(${PROJECT_NAME})
 
   # Install Python executables
   install(PROGRAMS
-  scripts/python_pub.py
+  scripts/python_pub_node.py
   DESTINATION lib/${PROJECT_NAME}
   )
 endif()

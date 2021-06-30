@@ -10,7 +10,7 @@ colcon build --packages-select vtem_control
 
 #### Run subscriber node to regulate pressure
 ```bash
-ros2 run vtem_control pressure_regulator_node
+ros2 run vtem_control pressure_regulator_sub_node
 ```
 #### Run valve test
 ```bash
@@ -19,7 +19,7 @@ ros2 run vtem_control valve_test
 
 ### Run python publisher
 ```bash
-python3 scripts/python_pub.py
+python3 scripts/python_pub_node.py
 ```
 
 ## C++ package without ROS2 dependencies
