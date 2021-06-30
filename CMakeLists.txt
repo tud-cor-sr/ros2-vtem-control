@@ -85,6 +85,8 @@ if(BUILD_WITH_ROS2)
   )
 endif()
 
+# install other executables and libraries
+install(TARGETS VtemControl DESTINATION lib/${PROJECT_NAME})
 install(TARGETS valve_test DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_WITH_ROS2 AND BUILD_TESTING)
