@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 project(vtem_control)
 
+# to we want to build with ROS?
+option(BUILD_WITH_ROS2 "Do you want to build the package with ROS2 dependencies?" true)
+
 # include directories
 include_directories(include/vtem_control include/vtem_control/modbus)
 
@@ -17,9 +20,6 @@ endif()
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
-
-# to we want to build with ROS?
-set(BUILD_WITH_ROS2 true)
 
 if(BUILD_WITH_ROS2)
   # find ROS dependencies
@@ -84,6 +84,8 @@ if(BUILD_WITH_ROS2)
   DESTINATION lib/${PROJECT_NAME}
   )
 endif()
+
+install(TARGETS valve_test DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_WITH_ROS2 AND BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
