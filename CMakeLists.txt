@@ -58,7 +58,7 @@ endif()
 
 # add ROS executables
 if(BUILD_WITH_ROS2)
-  add_executable(pressure_regulator_sub_node src/pressure_regulator_sub_node.cpp)
+  add_executable(pressure_regulator_sub_node src/pressure_regulator_sub_node.cpp src/VtemControl.cpp)
   ament_target_dependencies(pressure_regulator_sub_node rclcpp)
   # to be able to use InputPressures.msg in the same package
   rosidl_target_interfaces(pressure_regulator_sub_node
@@ -66,6 +66,8 @@ if(BUILD_WITH_ROS2)
   target_include_directories(pressure_regulator_sub_node PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
+  target_include_directories(pressure_regulator_sub_node PRIVATE ${MODBUS_DIRS})
+  target_link_libraries(pressure_regulator_sub_node ${MODBUS_LIBRARIES} )
 endif()
 
 # add other executables

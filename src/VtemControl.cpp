@@ -1,5 +1,5 @@
 #include "modbus-tcp.h"
-#include "VtemControl.h"
+#include "VtemControl.hpp"
 #include <stdexcept>
 
 
@@ -11,7 +11,7 @@ namespace {
     const int num_valves = 16;
 }
 
-VtemControl::VtemControl(const char *node, const char *service) {
+vtem_control::VtemControl::VtemControl(const char *node, const char *service) {
     // Not connected.
     connected_ = false;
 
@@ -24,7 +24,7 @@ VtemControl::VtemControl(const char *node, const char *service) {
     ctx_ = modbus_new_tcp_pi(node, service);
 }
 
-VtemControl::~VtemControl() {
+vtem_control::VtemControl::~VtemControl() {
     // Close if not yet closed.
     if (connected_) {
         disconnect();
@@ -34,7 +34,7 @@ VtemControl::~VtemControl() {
     modbus_free(ctx_);
 }
 
-bool VtemControl::connect() {
+bool vtem_control::VtemControl::connect() {
     if (modbus_connect(ctx_) == -1) {
         fprintf(stderr, "Connection failed");//: %s\n", modbus_strerror(errno));
         modbus_free(ctx_);
@@ -45,7 +45,7 @@ bool VtemControl::connect() {
     return true;
 }
 
-bool VtemControl::disconnect() {
+bool vtem_control::VtemControl::disconnect() {
     if (connected_) {
         modbus_close(ctx_);
         connected_ = false;
@@ -55,13 +55,13 @@ bool VtemControl::disconnect() {
     return false;
 }
 
-void VtemControl::ensure_connection() const {
+void vtem_control::VtemControl::ensure_connection() const {
     if (!connected_) {
         throw std::runtime_error("Operation requires a connection.");
     }
 }
 
-int VtemControl::get_single_pressure(const int index) {
+int vtem_control::VtemControl::get_single_pressure(const int index) {
     ensure_connection();
     const auto dest = &input_buffer_[index];
     const auto addr = address_input_start + cpx_input_offset + 3 * index;
@@ -73,7 +73,7 @@ int VtemControl::get_single_pressure(const int index) {
     return *dest;
 }
 
-void VtemControl::set_single_pressure(const int index, const int pressure) {
+void vtem_control::VtemControl::set_single_pressure(const int index, const int pressure) {
     ensure_connection();
     const auto addr = address_output_start + cpx_output_offset + index;
 
@@ -82,7 +82,7 @@ void VtemControl::set_single_pressure(const int index, const int pressure) {
     }
 }
 
-void VtemControl::get_all_pressures(std::vector<int> *output) {
+void vtem_control::VtemControl::get_all_pressures(std::vector<int> *output) {
     ensure_connection();
     const auto dest = &input_buffer_[0];
     const auto addr = address_input_start + cpx_input_offset;
@@ -97,7 +97,7 @@ void VtemControl::get_all_pressures(std::vector<int> *output) {
     }
 }
 
-void VtemControl::set_all_pressures(const std::vector<int> &pressures) {
+void vtem_control::VtemControl::set_all_pressures(const std::vector<int> &pressures) {
     ensure_connection();
     const auto data = &output_buffer_[0];
     const auto addr = address_output_start + cpx_output_offset;

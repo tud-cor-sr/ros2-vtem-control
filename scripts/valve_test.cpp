@@ -1,4 +1,4 @@
-#include "VtemControl.h"
+#include "VtemControl.hpp"
 #include <chrono>
 #include <iostream>
 #include <thread>
@@ -20,7 +20,7 @@ int step_func(int i) {
 
 int main() {
     // Create VtemControl controller.
-    VtemControl vtemControl("192.168.1.101", "502");
+    vtem_control::VtemControl vtemControl("192.168.1.101", "502");
     unsigned int valveNum = 0;          // test valves 0 to 15
     unsigned int commandPressure = 450; // tested 0 to 1000 mbar
     unsigned int endPressure = 0;
