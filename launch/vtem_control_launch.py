@@ -2,19 +2,24 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 
 def generate_launch_description():
+    common_params = {"vtem_node": "192.168.1.101", "vtem_service": "502"}
     return LaunchDescription([
         Node(
             package='vtem_control',
             namespace='vtem_control',
-            executable='turtlesim_node',
-            name='sim'
+            executable='input_pressures_sub_node',
+            parameters=[
+                common_params,
+                {"input_pressures_topic": "input_pressures"}
+            ]
         ),
         Node(
             package='vtem_control',
             namespace='vtem_control',
             executable='output_pressures_pub_node',
             parameters=[
-                {"output_pressures_topic": "test"}
+                common_params,
+                {"output_pressures_topic": "output_pressures", "pub_freq": 50.}
             ]
         ),
     ])

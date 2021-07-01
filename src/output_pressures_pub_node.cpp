@@ -16,18 +16,18 @@ public:
   : Node("output_pressures_pub")
   {
     // VTEM input pressures topic
-    this->declare_parameter<std::string>("vtem_control/output_pressures_topic", "vtem_control/output_pressures");
-    this->get_parameter("vtem_control/output_pressures_topic", vtem_output_pressures_topic_);
+    this->declare_parameter<std::string>("output_pressures_topic", "output_pressures");
+    this->get_parameter("output_pressures_topic", vtem_output_pressures_topic_);
 
     // publication frequency
-    this->declare_parameter<float>("vtem_control/pub_freq", 50.);
-    this->get_parameter("vtem_control/pub_freq", pub_freq_);
+    this->declare_parameter<float>("pub_freq", 50.);
+    this->get_parameter("pub_freq", pub_freq_);
 
     // VTEM modbus network information
-    this->declare_parameter<std::string>("vtem_control/node", "192.168.1.101");
-    this->declare_parameter<std::string>("vtem_control/service", "502");
-    this->get_parameter("vtem_control/node", vtem_node_);
-    this->get_parameter("vtem_control/service", vtem_service_);
+    this->declare_parameter<std::string>("vtem_node", "192.168.1.101");
+    this->declare_parameter<std::string>("vtem_service", "502");
+    this->get_parameter("vtem_node", vtem_node_);
+    this->get_parameter("vtem_service", vtem_service_);
 
     publisher_ = this->create_publisher<vtem_control::msg::FluidPressures>(vtem_output_pressures_topic_.c_str(), 10);
     timer_ = this->create_wall_timer(std::chrono::microseconds((int) (1000000 / pub_freq_)), std::bind(&OutputPressuresPub::timer_callback, this));
