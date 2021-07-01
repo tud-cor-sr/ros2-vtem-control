@@ -19,16 +19,16 @@ public:
     this->get_parameter("input_pressures_topic", vtem_input_pressures_topic_);
 
     // VTEM modbus network information
-    this->declare_parameter<std::string>("vtem_node", "192.168.1.101");
-    this->declare_parameter<std::string>("vtem_service", "502");
-    this->get_parameter("vtem_node", vtem_node_);
-    this->get_parameter("vtem_service", vtem_service_);
+    this->declare_parameter<std::string>("modbus_node", "192.168.1.101");
+    this->declare_parameter<std::string>("modbus_service", "502");
+    this->get_parameter("modbus_node", modbus_node_);
+    this->get_parameter("modbus_service", modbus_service_);
 
     subscription_ = this->create_subscription<vtem_control::msg::FluidPressures>(
       vtem_input_pressures_topic_.c_str(), 10, std::bind(&InputPressuresSubscriber::topic_callback, this, _1));
     
     // Create VtemControl object
-    vtem_control::VtemControl vtemControl_(vtem_node_.c_str(), vtem_service_.c_str());
+    vtem_control::VtemControl vtemControl_(modbus_node_.c_str(), modbus_service_.c_str());
 
     // Connect to VTEM
     if (!vtemControl_.connect()) {
@@ -55,8 +55,8 @@ private:
   rclcpp::Subscription<vtem_control::msg::FluidPressures>::SharedPtr subscription_;
 
   std::string vtem_input_pressures_topic_;
-  std::string vtem_node_;
-  std::string vtem_service_;
+  std::string modbus_node_;
+  std::string modbus_service_;
 };
 
 int main(int argc, char * argv[])

@@ -24,16 +24,16 @@ public:
     this->get_parameter("pub_freq", pub_freq_);
 
     // VTEM modbus network information
-    this->declare_parameter<std::string>("vtem_node", "192.168.1.101");
-    this->declare_parameter<std::string>("vtem_service", "502");
-    this->get_parameter("vtem_node", vtem_node_);
-    this->get_parameter("vtem_service", vtem_service_);
+    this->declare_parameter<std::string>("modbus_node", "192.168.1.101");
+    this->declare_parameter<std::string>("modbus_service", "502");
+    this->get_parameter("modbus_node", modbus_node_);
+    this->get_parameter("modbus_service", modbus_service_);
 
     publisher_ = this->create_publisher<vtem_control::msg::FluidPressures>(vtem_output_pressures_topic_.c_str(), 10);
     timer_ = this->create_wall_timer(std::chrono::microseconds((int) (1000000 / pub_freq_)), std::bind(&OutputPressuresPub::timer_callback, this));
     
     // Create VtemControl object
-    vtem_control::VtemControl vtemControl_(vtem_node_.c_str(), vtem_service_.c_str());
+    vtem_control::VtemControl vtemControl_(modbus_node_.c_str(), modbus_service_.c_str());
 
     // Connect to VTEM
     if (!vtemControl_.connect()) {
@@ -72,8 +72,8 @@ private:
 
   std::string vtem_output_pressures_topic_;
   float pub_freq_;
-  std::string vtem_node_;
-  std::string vtem_service_;
+  std::string modbus_node_;
+  std::string modbus_service_;
 };
 
 int main(int argc, char * argv[])
