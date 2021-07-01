@@ -8,16 +8,22 @@ colcon build --packages-select vtem_control
 ```
 ### Run
 
-#### Run subscriber node to regulate pressure
+#### Run subscriber node to send input pressures to VTEM
 ```bash
 ros2 run vtem_control input_pressures_sub_node
 ```
+
+### Run publisher node to grab output pressures from VTEM
+```bash
+ros2 run vtem_control output_pressures_pub_node
+```
+
 #### Run valve test
 ```bash
 ros2 run vtem_control valve_test
 ```
 
-### Run python publisher
+### Run python publisher for input pressure step function
 ```bash
 python3 scripts/python_pub_node.py
 ```

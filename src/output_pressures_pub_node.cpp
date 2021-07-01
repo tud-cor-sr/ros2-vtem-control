@@ -19,6 +19,10 @@ public:
     this->declare_parameter<std::string>("vtem_control/output_pressures_topic", "vtem_control/output_pressures");
     this->get_parameter("vtem_control/output_pressures_topic", vtem_output_pressures_topic_);
 
+    // publication frequency
+    this->declare_parameter<float>("vtem_control/pub_freq", 50.);
+    this->get_parameter("vtem_control/pub_freq", pub_freq_);
+
     // VTEM modbus network information
     this->declare_parameter<std::string>("vtem_control/node", "192.168.1.101");
     this->declare_parameter<std::string>("vtem_control/service", "502");
@@ -26,7 +30,7 @@ public:
     this->get_parameter("vtem_control/service", vtem_service_);
 
     publisher_ = this->create_publisher<vtem_control::msg::FluidPressures>(vtem_output_pressures_topic_.c_str(), 10);
-    timer_ = this->create_wall_timer(500ms, std::bind(&OutputPressuresPub::timer_callback, this));
+    timer_ = this->create_wall_timer(std::chrono::microseconds((int) (1000000 / pub_freq_)), std::bind(&OutputPressuresPub::timer_callback, this));
     
     // Create VtemControl object
     vtem_control::VtemControl vtemControl_(vtem_node_.c_str(), vtem_service_.c_str());
@@ -43,16 +47,31 @@ public:
 private:
   void timer_callback()
   {
-    // auto message = std_msgs::msg::String();
-    // message.data = "Hello, world! " + std::to_string(count_++);
-    // RCLCPP_INFO(this->get_logger(), "Publishing: '%s'", message.data.c_str());
-    // publisher_->publish(message);
+    std::vector<int> output_pressures_mbar;
+    vtemControl_.get_all_pressures(&output_pressures_mbar);
+
+    auto msg = vtem_control::msg::FluidPressures();
+    msg.header.stamp = OutputPressuresPub::get_clock()->now();
+    std::vector<sensor_msgs::msg::FluidPressure> fluid_pressure_msgs(output_pressures_mbar.size());
+
+    int idx = 0;
+    for (auto it = output_pressures_mbar.begin(); it != output_pressures_mbar.end(); ++it) {
+      sensor_msgs::msg::FluidPressure fluid_pressure_msg;
+      fluid_pressure_msg.header.stamp =  OutputPressuresPub::get_clock()->now();
+      fluid_pressure_msg.fluid_pressure =  (float) *it * 100;
+      fluid_pressure_msgs[idx] = fluid_pressure_msg;
+      idx += 1;
+    }
+    msg.data = fluid_pressure_msgs;
+
+    publisher_->publish(msg);
   }
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<vtem_control::msg::FluidPressures>::SharedPtr publisher_;
   size_t count_;
 
   std::string vtem_output_pressures_topic_;
+  float pub_freq_;
   std::string vtem_node_;
   std::string vtem_service_;
 };
