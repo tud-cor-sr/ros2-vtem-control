@@ -96,6 +96,13 @@ if(BUILD_WITH_ROS2)
   scripts/python_pub_node.py
   DESTINATION lib/${PROJECT_NAME}
   )
+
+  # Install launch files
+  # Install launch files
+  install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}/
+  )
 endif()
 
 # install other executables and libraries

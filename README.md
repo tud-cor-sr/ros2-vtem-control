@@ -8,6 +8,11 @@ colcon build --packages-select vtem_control
 ```
 ### Run
 
+### Run input and output pressures nodes using launch file
+```bash
+ros2 launch vtem_control vtem_control_launch.py
+```
+
 #### Run subscriber node to send input pressures to VTEM
 ```bash
 ros2 run vtem_control input_pressures_sub_node
