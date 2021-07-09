@@ -15,7 +15,7 @@ classdef VtemControl < handle
          obj.Port_ = Port;
       end
       function connect(obj)
-         obj.ctx_ = modbus('tcpip', DeviceAddress, Port);
+         obj.ctx_ = modbus('tcpip', obj.DeviceAddress_, obj.Port_);
       end
       function disconnect(obj)
          % clear obj.ctx_;
