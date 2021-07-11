@@ -1,13 +1,12 @@
-function msg = array_to_FluidPressures_msg(array)
+function msg = array_to_FluidPressures_msg(pressures)
     msg = ros2message("vtem_control_msgs/FluidPressures");
     msg.header = ros2message("std_msgs/Header");
-    % msg.Header.Stamp =
     
     fluidPressureBlankMsg = ros2message("sensor_msgs/FluidPressure");
-    fluidPressureMsgs(length(array)) = fluidPressureBlankMsg;
-    for idx = 1:length(array)
+    fluidPressureMsgs(length(pressures)) = fluidPressureBlankMsg;
+    for idx = 1:length(pressures)
         fluidPressureMsgs(idx).header = ros2message("std_msgs/Header");
-        fluidPressureMsgs(idx).fluid_pressure = array(idx);
+        fluidPressureMsgs(idx).fluid_pressure = pressures(idx);
         fluidPressureMsgs(idx).variance = 0;
     end
     
