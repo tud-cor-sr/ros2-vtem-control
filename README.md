@@ -38,7 +38,7 @@ python3 scripts/python_pub_node.py
 ```bash
 cmake -S . -B build -DBUILD_WITH_ROS2=false
 ```
-## Install
+### Install
 ```bash
 cmake --install build
 ```
@@ -46,3 +46,6 @@ cmake --install build
 ```bash
 /usr/local/lib/vtem_control/valve_test
 ```
+
+## Matlab
+Requires Python 3.7 to be installed to load custom FluidPressures messages
