@@ -6,7 +6,7 @@ freq = 10; % [Hz]
 
 % ROS node initiated by Matlab
 outputPressuresPubNode = ros2node("vtem_control/output_pressures_pub_node");
-vtemControlPressurePub = ros2publisher(outputPressuresPubNode, "output_pressures", "vtem_control_msgs/FluidPressures");
+vtemControlPressurePub = ros2publisher(outputPressuresPubNode, "/vtem_control/output_pressures", "vtem_control_msgs/FluidPressures");
 
 % establish VtemControl class
 vtemControl = VtemControl(vtemDeviceAddress, vtemPort);

@@ -9,19 +9,19 @@ freq = 10; % [Hz]
 
 % ROS node initiated by Matlab
 inputPressuresPubNode = ros2node("vtem_control/input_pressures_pub_node");
-vtemControlPressurePub = ros2publisher(inputPressuresPubNode, "input_pressures", "vtem_control_msgs/FluidPressures");
+inputPressuresPub = ros2publisher(inputPressuresPubNode, "/vtem_control/input_pressures", "vtem_control_msgs/FluidPressures");
 
 % some test messages
 for idx = 1:1000
     fprintf("Publish input pressures message %d \n", idx);
-    pressures = zeros(16);
+    pressures = zeros(16, 1);
     pressure = step_func(idx);
     pressures(1) = pressure;
     
     msg = array_to_FluidPressures_msg(pressures);
     
     % Pass the data to subscribers
-    send(vtemControlPressurePub, msg)
+    send(inputPressuresPub, msg)
     
     pause(1/freq);
 end
