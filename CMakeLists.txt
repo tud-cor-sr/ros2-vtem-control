@@ -43,7 +43,7 @@ if(BUILD_WITH_ROS2)
   find_package(std_msgs REQUIRED)
   find_package(sensor_msgs REQUIRED)
   rosidl_generate_interfaces(${PROJECT_NAME}
-    "msg/FluidPressures.msg"
+    "vtem_control_msgs/msg/FluidPressures.msg"
     DEPENDENCIES std_msgs sensor_msgs
   )
 endif()

@@ -3,7 +3,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "VtemControl.hpp"
-#include "vtem_control/msg/fluid_pressures.hpp"
+#include "vtem_control/vtem_control_msgs/msg/fluid_pressures.hpp"
 
 using namespace std::chrono_literals;
 
