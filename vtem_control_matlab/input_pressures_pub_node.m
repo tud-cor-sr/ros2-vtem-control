@@ -4,13 +4,6 @@
 % init workspace
 % init
 
-% sample message
-msgBlank = ros2message("vtem_control_msgs/FluidPressures");
-msgBlank.data = [1., 2., 0.5, 0., ... 
-                 0., 0., 0., 0., ...
-                 0., 0., 0., 0., ...
-                 0., 0., 0., 0.]*10^5; % [Pa]
-
 % ROS node initiated by Matlab
 inputPressuresPubNode = ros2node("vtem_control/input_pressures_pub_node");
 vtemControlPressurePub = ros2publisher(inputPressuresPubNode, "input_pressures", "vtem_control_msgs/FluidPressures");
