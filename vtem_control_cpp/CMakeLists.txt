@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(vtem_control)
+project(vtem_control_cpp)
 
 # to we want to build with ROS?
 option(BUILD_WITH_ROS2 "Do you want to build the package with ROS2 dependencies?" true)
@@ -8,7 +8,7 @@ option(BUILD_WITH_ROS2 "Do you want to build the package with ROS2 dependencies?
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 # include directories
-include_directories(include/vtem_control)
+include_directories(include/vtem_control_cpp)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -28,6 +28,7 @@ if(BUILD_WITH_ROS2)
   # find ROS dependencies
   find_package(ament_cmake REQUIRED)
   find_package(rclcpp REQUIRED)
+  find_package(vtem_control_msgs REQUIRED) 
 endif()
 
 find_package (Eigen3 REQUIRED)
@@ -37,25 +38,11 @@ include_directories(${EIGEN3_INCLUDE_DIRS})
 find_package(Modbus REQUIRED)
 include_directories(${MODBUS_INCLUDE_DIR})
 
-if(BUILD_WITH_ROS2)
-# add custom ROS messages
-  find_package(rosidl_default_generators REQUIRED)
-  find_package(std_msgs REQUIRED)
-  find_package(sensor_msgs REQUIRED)
-  rosidl_generate_interfaces(${PROJECT_NAME}
-    "vtem_control_msgs/msg/FluidPressures.msg"
-    DEPENDENCIES std_msgs sensor_msgs
-  )
-endif()
-
 # add ROS executables
 if(BUILD_WITH_ROS2)
   # input pressures subscriber node
   add_executable(input_pressures_sub_node src/input_pressures_sub_node.cpp src/VtemControl.cpp)
-  ament_target_dependencies(input_pressures_sub_node rclcpp)
-  # to be able to use FluidPressures.msg in the same package
-  rosidl_target_interfaces(input_pressures_sub_node
-      ${PROJECT_NAME} "rosidl_typesupport_cpp")
+  ament_target_dependencies(input_pressures_sub_node vtem_control_msgs rclcpp)
   target_include_directories(input_pressures_sub_node PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
@@ -63,10 +50,7 @@ if(BUILD_WITH_ROS2)
 
   # output pressures subscriber node
   add_executable(output_pressures_pub_node src/output_pressures_pub_node.cpp src/VtemControl.cpp)
-  ament_target_dependencies(output_pressures_pub_node rclcpp)
-  # to be able to use FluidPressures.msg in the same package
-  rosidl_target_interfaces(output_pressures_pub_node
-      ${PROJECT_NAME} "rosidl_typesupport_cpp")
+  ament_target_dependencies(output_pressures_pub_node vtem_control_msgs rclcpp)
   target_include_directories(output_pressures_pub_node PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
@@ -92,10 +76,10 @@ if(BUILD_WITH_ROS2)
   # ament_python_install_package(${PROJECT_NAME})
 
   # Install Python executables
-  install(PROGRAMS
-  scripts/python_pub_node.py
-  DESTINATION lib/${PROJECT_NAME}
-  )
+  # install(PROGRAMS
+  # scripts/python_pub_node.py
+  # DESTINATION lib/${PROJECT_NAME}
+  # )
 
   # Install launch files
   # Install launch files

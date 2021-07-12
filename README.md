@@ -4,28 +4,28 @@ ROS2 package for the control of the Festo VTEM motion terminal. Adapted from htt
 ## ROS2 package
 ### Build
 ```bash
-colcon build --packages-select vtem_control
+colcon build --packages-select vtem_control_cpp vtem_control_msgs
 ```
 ### Run
 
 ### Run input and output pressures nodes using launch file
 ```bash
-ros2 launch vtem_control vtem_control_launch.py
+ros2 launch vtem_control_cpp vtem_control_launch.py
 ```
 
 #### Run subscriber node to send input pressures to VTEM
 ```bash
-ros2 run vtem_control input_pressures_sub_node
+ros2 run vtem_control_cpp input_pressures_sub_node
 ```
 
 ### Run publisher node to grab output pressures from VTEM
 ```bash
-ros2 run vtem_control output_pressures_pub_node
+ros2 run vtem_control_cpp output_pressures_pub_node
 ```
 
 #### Run valve test
 ```bash
-ros2 run vtem_control valve_test
+ros2 run vtem_control_cpp valve_test
 ```
 
 ### Run python publisher for input pressure step function
@@ -44,7 +44,7 @@ cmake --install build
 ```
 ### Run valve test
 ```bash
-/usr/local/lib/vtem_control/valve_test
+/usr/local/lib/vtem_control_cpp/valve_test
 ```
 
 ## Matlab

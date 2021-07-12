@@ -3,7 +3,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "VtemControl.hpp"
-#include "vtem_control/msg/fluid_pressures.hpp"
+#include "vtem_control_msgs/msg/fluid_pressures.hpp"
 using std::placeholders::_1;
 
 class InputPressuresSubscriber : public rclcpp::Node
@@ -24,7 +24,7 @@ public:
     this->get_parameter("modbus_node", modbus_node_);
     this->get_parameter("modbus_service", modbus_service_);
 
-    subscription_ = this->create_subscription<vtem_control::msg::FluidPressures>(
+    subscription_ = this->create_subscription<vtem_control_msgs::msg::FluidPressures>(
       vtem_input_pressures_topic_.c_str(), 10, std::bind(&InputPressuresSubscriber::topic_callback, this, _1));
     
     // Create VtemControl object
@@ -40,7 +40,7 @@ public:
   }
 
 private:
-  void topic_callback(const vtem_control::msg::FluidPressures::SharedPtr msg)
+  void topic_callback(const vtem_control_msgs::msg::FluidPressures::SharedPtr msg)
   {
     RCLCPP_INFO(this->get_logger(), "I received msg with pressure[0]: %d mBar", (int) (msg->data[0].fluid_pressure/100));
     std::vector<int> input_pressures_mbar(msg->data.size(), 0);
@@ -52,7 +52,7 @@ private:
     }
     vtemControl_.set_all_pressures(input_pressures_mbar);
   }
-  rclcpp::Subscription<vtem_control::msg::FluidPressures>::SharedPtr subscription_;
+  rclcpp::Subscription<vtem_control_msgs::msg::FluidPressures>::SharedPtr subscription_;
 
   std::string vtem_input_pressures_topic_;
   std::string modbus_node_;
