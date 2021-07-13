@@ -3,7 +3,7 @@ valveNum = 0; % test valves 0 to 16
 commandPressure = 450; % [mBar]
 endPressure = 0;
 
-vtem_control = VtemControl("192.168.1.101", 502);
+vtem_control = VtemControl("192.168.0.160", 502);
 vtem_control.connect();
 
 vtem_control.set_single_pressure(valveNum, commandPressure);
