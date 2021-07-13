@@ -27,7 +27,7 @@ int main() {
 
     // Connect.
     if (!vtemControl.connect()) {
-        std::cout << "Failed to connect to MPA." << std::endl;
+        std::cout << "Failed to connect to VTEM." << std::endl;
         return -1;
     }
 

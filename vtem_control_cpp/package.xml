@@ -4,16 +4,16 @@
   <name>vtem_control_cpp</name>
   <version>0.0.0</version>
   <description>ROS2 package for the control of the Festo VTEM motion terminal</description>
-  <maintainer email="maximilian@stoelzle.ch">root</maintainer>
+  <maintainer email="maximilian@stoelzle.ch">Maximilian Stoelzle</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-  <buildtool_depend>ament_cmake_python</buildtool_depend>
+  <!-- <buildtool_depend>ament_cmake_python</buildtool_depend> -->
   <buildtool_depend>eigen3_cmake_module</buildtool_depend>
 
+  <!-- TODO: Figure out how we can include the dependency on the vtem_control_msgs -->
   <depend>vtem_control_msgs</depend>
   
-  <build_depend>pkg-config</build_depend>
   <build_depend>rosidl_default_generators</build_depend>
   <!-- <build_depend>libeigen3-dev</build_depend> -->
   <build_depend>eigen</build_depend>
@@ -22,12 +22,9 @@
   <exec_depend>rosidl_default_runtime</exec_depend>
   <exec_depend>libmodbus-dev</exec_depend>
   <exec_depend>rclpy</exec_depend> 
-  <exec_depend>std_msgs</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
-
-  <member_of_group>rosidl_interface_packages</member_of_group>
 
   <export>
     <build_type>ament_cmake</build_type>
