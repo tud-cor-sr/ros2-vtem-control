@@ -1,5 +1,7 @@
 #include "modbus/modbus-tcp.h"
 #include "VtemControl.hpp"
+
+#include <cmath>
 #include <stdexcept>
 
 
@@ -75,9 +77,13 @@ int vtem_control::VtemControl::get_single_pressure(const int index) {
 
 void vtem_control::VtemControl::set_single_pressure(const int index, const int pressure) {
     ensure_connection();
-    const auto addr = address_output_start + cpx_output_offset + index;
 
-    if (modbus_write_register(ctx_, addr, pressure) == -1) {
+    int slot_idx = std::floor(index / 2); // index of slot [0-7]
+    int slot_remain = index - 2* slot_idx; // either 0 or 1 for valve in slot
+
+    const auto set_point_addr = address_output_start + cpx_output_offset + 3*slot_idx + slot_remain;
+
+    if (modbus_write_register(ctx_, set_point_addr, pressure) == -1) {
         throw std::runtime_error("Failed to write VPPM register.");
     }
 }
