@@ -34,8 +34,14 @@ public:
     if (!vtemControl_.connect()) {
       throw std::invalid_argument("Failed to connect to VTEM!");
     }
+
+    // Set motion app for all valves to 03 (proportional pressure regulation)
+    if (!vtemControl_.activate_pressure_regulation(-1)) {
+      throw std::invalid_argument("Failed to activate pressure regulation!");
+    }
   }
   ~InputPressuresSubscriber() {
+    vtemControl_.deactivate_pressure_regulation(-1);
     vtemControl_.disconnect();
   }
 

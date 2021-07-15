@@ -20,14 +20,23 @@ int step_func(int i) {
 
 int main() {
     // Create VtemControl controller.
-    vtem_control::VtemControl vtemControl("192.168.1.101", "502");
+    vtem_control::VtemControl vtemControl("192.168.1.1", "502");
+
     unsigned int valveNum = 0;          // test valves 0 to 15
+    unsigned int slotId = vtemControl.get_slot_idx(valveNum); 
+    
     unsigned int commandPressure = 450; // tested 0 to 1000 mbar
     unsigned int endPressure = 0;
 
     // Connect.
     if (!vtemControl.connect()) {
         std::cout << "Failed to connect to VTEM." << std::endl;
+        return -1;
+    }
+
+    // Set motion app for all valves to 03 (proportional pressure regulation)
+    if (!vtemControl.activate_pressure_regulation(slotId)) {
+        std::cout << "Failed to activate pressure regulation." << std::endl;
         return -1;
     }
 
@@ -70,6 +79,12 @@ int main() {
     // Read pressure of valve 0.
     std::cout << "Valve " << valveNum << " :" << vtemControl.get_single_pressure(valveNum)
               << " mbar" << std::endl;
+
+    // Set motion app for all valves to 03 (proportional pressure regulation)
+    if (!vtemControl.deactivate_pressure_regulation(slotId)) {
+        std::cout << "Failed to deactivate pressure regulation." << std::endl;
+        return -1;
+    }
 
     // Disconnect.
     vtemControl.disconnect();

@@ -57,15 +57,59 @@ bool vtem_control::VtemControl::disconnect() {
     return false;
 }
 
+int vtem_control::VtemControl::get_single_motion_app(int slot_idx) {
+    // const auto addr = address_output_start + cpx_output_offset + 3*slot_idx;
+
+    // if (modbus_write_register(ctx_, addr, pressure) == -1) {
+    //     throw std::runtime_error("Failed to write register for settimotion app.");
+    // }
+    return 1;
+}
+
+bool vtem_control::VtemControl::set_single_motion_app(int slot_idx, int motion_app_id = 61) {
+    const auto addr = address_output_start + cpx_output_offset + 3*slot_idx;
+
+    if (modbus_write_register(ctx_, addr, motion_app_id) == -1) {
+        throw std::runtime_error("Failed to write register for setting motion app.");
+    }
+
+    return true;
+}
+
+bool vtem_control::VtemControl::set_all_motion_apps(int motion_app_id = 61) {
+    for (auto slot_idx = 0; slot_idx < (num_valves / 2); slot_idx++) {
+        if (!set_single_motion_app(slot_idx, motion_app_id)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool vtem_control::VtemControl::activate_pressure_regulation(int slot_idx = -1) {
+    if (slot_idx == -1) {
+        return set_all_motion_apps(3);
+    } else {
+        return set_single_motion_app(3);
+    }
+}
+
+bool vtem_control::VtemControl::deactivate_pressure_regulation(int slot_idx = -1) {
+    if (slot_idx == -1) {
+        return set_all_motion_apps(61);
+    } else {
+        return set_single_motion_app(61);
+    }
+}
+
 void vtem_control::VtemControl::ensure_connection() const {
     if (!connected_) {
         throw std::runtime_error("Operation requires a connection.");
     }
 }
 
-void vtem_control::VtemControl::ensure_motion_app() const {
-    if (!set_motion_app_) {
-        throw std::runtime_error("Operation requires activating the proportional pressure regulation motion app 03.");
+void vtem_control::VtemControl::ensure_motion_app(int slot_idx, int des_motion_app_id) {
+    if (get_single_motion_app(slot_idx) != des_motion_app_id) {
+        throw std::runtime_error("Operation requires activating the suitable motion app");
     }
 }
 
@@ -76,7 +120,6 @@ int vtem_control::VtemControl::get_slot_idx(const int valve_idx) const {
 
 int vtem_control::VtemControl::get_single_pressure(const int valve_idx) {
     ensure_connection();
-    ensure_motion_app();
 
     int slot_idx = get_slot_idx(valve_idx);
     int slot_remain = valve_idx - 2*slot_idx; // either 0 or 1 for valve in slot
@@ -91,12 +134,12 @@ int vtem_control::VtemControl::get_single_pressure(const int valve_idx) {
     return *dest;
 }
 
-void vtem_control::VtemControl::set_single_pressure(const int valve_idx, const int pressure) {
+void vtem_control::VtemControl::set_single_pressure(const int valve_idx, const int pressure = 0) {
     ensure_connection();
-    ensure_motion_app();
 
     int slot_idx = get_slot_idx(valve_idx);
     int slot_remain = valve_idx - 2*slot_idx; // either 0 or 1 for valve in slot
+    ensure_motion_app(valve_idx, 3);
 
     const auto addr = address_output_start + cpx_output_offset + 3*slot_idx + 1 +  slot_remain;
 
@@ -109,7 +152,6 @@ void vtem_control::VtemControl::get_all_pressures(std::vector<int> *output) {
      /* Attention: This function is not yet adapted for the VTEM motion terminal */
 
     ensure_connection();
-    ensure_motion_app();
 
     const auto dest = &input_buffer_[0];
     const auto addr = address_input_start + cpx_input_offset;
@@ -128,7 +170,6 @@ void vtem_control::VtemControl::set_all_pressures(const std::vector<int> &pressu
     /* Attention: This function is not yet adapted for the VTEM motion terminal */
 
     ensure_connection();
-    ensure_motion_app();
 
     const auto data = &output_buffer_[0];
     const auto addr = address_output_start + cpx_output_offset;
