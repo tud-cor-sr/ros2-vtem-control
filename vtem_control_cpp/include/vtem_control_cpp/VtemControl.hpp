@@ -35,11 +35,14 @@ namespace vtem_control {
 
     private:
         void ensure_connection() const;
+        void ensure_motion_app() const;
 
         std::vector<uint16_t> input_buffer_;
         std::vector<uint16_t> output_buffer_;
 
-        bool connected_;
         modbus_t *ctx_;
+
+        bool connected_;
+        bool set_motion_app_;
     };
 }

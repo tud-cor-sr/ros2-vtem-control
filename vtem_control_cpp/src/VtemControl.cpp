@@ -63,8 +63,16 @@ void vtem_control::VtemControl::ensure_connection() const {
     }
 }
 
+void vtem_control::VtemControl::ensure_motion_app() const {
+    if (!set_motion_app_) {
+        throw std::runtime_error("Operation requires activating the proportional pressure regulation motion app 03.");
+    }
+}
+
 int vtem_control::VtemControl::get_single_pressure(const int index) {
     ensure_connection();
+    ensure_motion_app();
+
     const auto dest = &input_buffer_[index];
     const auto addr = address_input_start + cpx_input_offset + 3 * index;
 
@@ -77,11 +85,12 @@ int vtem_control::VtemControl::get_single_pressure(const int index) {
 
 void vtem_control::VtemControl::set_single_pressure(const int index, const int pressure) {
     ensure_connection();
+    ensure_motion_app();
 
     int slot_idx = std::floor(index / 2); // index of slot [0-7]
     int slot_remain = index - 2* slot_idx; // either 0 or 1 for valve in slot
 
-    const auto set_point_addr = address_output_start + cpx_output_offset + 3*slot_idx + slot_remain;
+    const auto set_point_addr = address_output_start + cpx_output_offset + 3*slot_idx + 1 +  slot_remain;
 
     if (modbus_write_register(ctx_, set_point_addr, pressure) == -1) {
         throw std::runtime_error("Failed to write VPPM register.");
@@ -89,7 +98,11 @@ void vtem_control::VtemControl::set_single_pressure(const int index, const int p
 }
 
 void vtem_control::VtemControl::get_all_pressures(std::vector<int> *output) {
+     /* Attention: This function is not yet adapted for the VTEM motion terminal */
+
     ensure_connection();
+    ensure_motion_app();
+
     const auto dest = &input_buffer_[0];
     const auto addr = address_input_start + cpx_input_offset;
 
@@ -104,7 +117,11 @@ void vtem_control::VtemControl::get_all_pressures(std::vector<int> *output) {
 }
 
 void vtem_control::VtemControl::set_all_pressures(const std::vector<int> &pressures) {
+    /* Attention: This function is not yet adapted for the VTEM motion terminal */
+
     ensure_connection();
+    ensure_motion_app();
+
     const auto data = &output_buffer_[0];
     const auto addr = address_output_start + cpx_output_offset;
 
