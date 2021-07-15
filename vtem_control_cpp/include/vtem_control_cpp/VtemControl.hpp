@@ -25,9 +25,9 @@ namespace vtem_control {
 
         bool disconnect();
 
-        int get_single_pressure(int index);
+        int get_single_pressure(int valve_idx);
 
-        void set_single_pressure(int index, int pressure);
+        void set_single_pressure(int valve_idx, int pressure);
 
         void get_all_pressures(std::vector<int> *output);
 
@@ -35,7 +35,10 @@ namespace vtem_control {
 
     private:
         void ensure_connection() const;
+
         void ensure_motion_app() const;
+
+        int get_slot_idx(int valve_idx) const;
 
         std::vector<uint16_t> input_buffer_;
         std::vector<uint16_t> output_buffer_;
