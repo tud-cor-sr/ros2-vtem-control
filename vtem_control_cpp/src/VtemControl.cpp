@@ -19,7 +19,7 @@ vtem_control::VtemControl::VtemControl(const char *node, const char *service) {
 
     // Resize buffer space.
     // Input buffer for each valve is of the format (actual, setpoint, diagnostic).
-    input_buffer_.resize(3 * num_valves);
+    input_buffer_.resize(2 * num_valves);
     output_buffer_.resize(num_valves);
 
     // Create Modbus context.
@@ -58,16 +58,29 @@ bool vtem_control::VtemControl::disconnect() {
 }
 
 int vtem_control::VtemControl::get_single_motion_app(int slot_idx) {
-    // const auto addr = address_output_start + cpx_output_offset + 3*slot_idx;
+    const auto addr = address_input_start + cpx_input_offset + 3*slot_idx;
+    uint16_t slot_status_bytes[2]; // this should read two bytes containing the slot status information
+    
+    if (modbus_read_registers(ctx_, addr, 1, &slot_status_bytes[0]) == -1) {
+        throw std::runtime_error("Failed to read slot status register.");
+    }
 
-    // if (modbus_write_register(ctx_, addr, pressure) == -1) {
-    //     throw std::runtime_error("Failed to write register for settimotion app.");
-    // }
-    return 1;
+    /* Attention: I am not sure about this implementation */
+    // extract first 6 bits from first byte
+    bool bit[6];
+    int motion_app_id;
+    for(int i = 0; i < 6; i++) {
+        bit[i] = ((slot_status_bytes[0] >> i) & 0x01);
+        motion_app_id = (motion_app_id << 1) | (bit[i] - '0');
+    }
+
+    return motion_app_id;
 }
 
 bool vtem_control::VtemControl::set_single_motion_app(int slot_idx, int motion_app_id = 61) {
     const auto addr = address_output_start + cpx_output_offset + 3*slot_idx;
+
+    // TODO: Adjust this code to only write the motion app id to the first 6 bits
 
     if (modbus_write_register(ctx_, addr, motion_app_id) == -1) {
         throw std::runtime_error("Failed to write register for setting motion app.");
