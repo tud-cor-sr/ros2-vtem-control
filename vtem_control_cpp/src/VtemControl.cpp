@@ -61,9 +61,9 @@ bool vtem_control::VtemControl::disconnect() {
 
 int vtem_control::VtemControl::get_single_motion_app(int slot_idx) {
     const auto addr = address_input_start + cpx_input_offset + 3*slot_idx;
-    uint16_t slot_status_bytes[2]; // this should read two bytes containing the slot status information
+    uint16_t slot_status; // this should read two bytes containing the slot status information
     
-    if (modbus_read_registers(ctx_, addr, 1, &slot_status_bytes[0]) == -1) {
+    if (modbus_read_registers(ctx_, addr, 1, &slot_status) == -1) {
         throw std::runtime_error("Failed to read slot status register.");
     }
 
@@ -72,7 +72,7 @@ int vtem_control::VtemControl::get_single_motion_app(int slot_idx) {
     bool bit[6];
     int motion_app_id;
     for(int i = 0; i < 6; i++) {
-        bit[i] = ((slot_status_bytes[0] >> i) & 0x01);
+        bit[i] = ((slot_status >> i) & 0x01);
         motion_app_id = (motion_app_id << 1) | (bit[i] - '0');
     }
 
