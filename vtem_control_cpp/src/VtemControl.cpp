@@ -68,12 +68,26 @@ int vtem_control::VtemControl::get_single_motion_app(int slot_idx) {
     }
 
     /* Attention: I am not sure about this implementation */
-    // extract first 6 bits from first byte
-    bool bit[6];
+    // extract first 6 bits from first byte to read actual motion app id
+    bool motion_app_bits[6];
     int motion_app_id;
     for(int i = 0; i < 6; i++) {
-        bit[i] = ((slot_status >> i) & 0x01);
-        motion_app_id = (motion_app_id << 1) | (bit[i] - '0');
+        motion_app_bits[i] = ((slot_status >> i) & 0x01);
+        motion_app_id = (motion_app_id << 1) | (motion_app_bits[i] - '0');
+    }
+
+    /*  extract bits 6-8 from first byte to read actual valve state
+        for motion app 03:
+            00: both valves are inactive
+            01: second valve is active
+            02: first valve is active
+            03: both valves are active
+    */
+    bool valve_state_bits[6];
+    int valve_state;
+    for(int i = 6; i < 8; i++) {
+        valve_state_bits[i] = ((slot_status >> i) & 0x01);
+        valve_state = (valve_state << 1) | (valve_state_bits[i] - '0');
     }
 
     return motion_app_id;
