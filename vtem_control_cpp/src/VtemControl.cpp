@@ -2,6 +2,8 @@
 #include "VtemControl.hpp"
 
 #include <cmath>
+#include <cstdint>
+#include <cstring>
 #include <stdexcept>
 
 
@@ -80,9 +82,36 @@ int vtem_control::VtemControl::get_single_motion_app(int slot_idx) {
 bool vtem_control::VtemControl::set_single_motion_app(int slot_idx, int motion_app_id = 61) {
     const auto addr = address_output_start + cpx_output_offset + 3*slot_idx;
 
-    // TODO: Adjust this code to only write the motion app id to the first 6 bits
+    // TODO: cleanup this code when its working at the end
 
-    if (modbus_write_register(ctx_, addr, motion_app_id) == -1) {
+    /* Attention: I am not sure about this implementation */
+
+    // unsigned char valve_mode[6]; // 6 bits to determine valve mode (e.g. motion app id)
+    // std::memcpy(&valve_mode, &motion_app_id, sizeof(valve_mode));
+    
+    // int valve_state = 03; // we want to activate both valves
+    // unsigned char valve_state_bits[2]; // 2 bits to determine the valve state
+    // std::memcpy(&valve_state_bits, &valve_state, sizeof(valve_state));
+
+    // // copy everything to the command bytes
+    // std::memcpy(&command_bytes[0], &valve_mode, sizeof(valve_mode));
+    // std::memcpy(&command_bytes[7], &valve_state_bits, sizeof(valve_state_bits));
+
+    // unsigned char command_bytes[2]; // two bytes encapsulating the command
+
+    // uint16_t command = 0;
+    // for ( size_t i = 0; i < 2; ++i ) {
+    //     command += command_bytes[i] << 8 * i;
+    // }
+
+    /* Attention: I am not sure about this implementation */
+    uint8_t command_first_byte = 0;
+    uint8_t command_second_byte = 0;
+    int valve_state = 03; // we want to activate both valves
+    command_first_byte = (motion_app_id << 6) | valve_state;
+    uint16_t command = (command_first_byte << 8) | command_second_byte;
+
+    if (modbus_write_register(ctx_, addr, command) == -1) {
         throw std::runtime_error("Failed to write register for setting motion app.");
     }
 
