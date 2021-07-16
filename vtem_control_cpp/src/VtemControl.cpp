@@ -136,6 +136,7 @@ int vtem_control::VtemControl::get_single_pressure(const int valve_idx) {
 
     int slot_idx = get_slot_idx(valve_idx);
     int slot_remain = valve_idx - 2*slot_idx; // either 0 or 1 for valve in slot
+    ensure_motion_app(valve_idx, 3);
 
     const auto dest = &input_buffer_[valve_idx];
     const auto addr = address_input_start + cpx_input_offset + 3*slot_idx + 1 + slot_remain;
@@ -162,36 +163,18 @@ void vtem_control::VtemControl::set_single_pressure(const int valve_idx, const i
 }
 
 void vtem_control::VtemControl::get_all_pressures(std::vector<int> *output) {
-     /* Attention: This function is not yet adapted for the VTEM motion terminal */
-
     ensure_connection();
 
-    const auto dest = &input_buffer_[0];
-    const auto addr = address_input_start + cpx_input_offset;
-
-    if (modbus_read_registers(ctx_, addr, num_valves * 3, dest) == -1) {
-        throw std::runtime_error("Failed to read VPPM registers.");
-    }
-
-    // Only read the actual value and ignore setpoint/diagonstic.
-    for (auto i = 0; i < num_valves; i++) {
-        output->at(i) = input_buffer_[i * 3];
+    for (auto valve_idx = 0; valve_idx < num_valves; valve_idx++) {
+        get_single_pressure(valve_idx);
+        output->at(valve_idx) = input_buffer_[valve_idx];
     }
 }
 
 void vtem_control::VtemControl::set_all_pressures(const std::vector<int> &pressures) {
-    /* Attention: This function is not yet adapted for the VTEM motion terminal */
-
     ensure_connection();
 
-    const auto data = &output_buffer_[0];
-    const auto addr = address_output_start + cpx_output_offset;
-
-    for (auto i = 0; i < num_valves; i++) {
-        output_buffer_[i] = pressures.at(i);
-    }
-
-    if (modbus_write_registers(ctx_, addr, num_valves, data) == -1) {
-        throw std::runtime_error("Failed to write VPPM registers.");
+    for (auto valve_idx = 0; valve_idx < num_valves; valve_idx++) {
+        set_single_pressure(valve_idx, pressures[valve_idx]);
     }
 }
