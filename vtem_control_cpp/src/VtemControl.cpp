@@ -40,7 +40,7 @@ vtem_control::VtemControl::~VtemControl() {
 
 bool vtem_control::VtemControl::connect() {
     if (modbus_connect(ctx_) == -1) {
-        fprintf(stderr, "Connection failed");//: %s\n", modbus_strerror(errno));
+        fprintf(stderr, "Connection failed\n");//: %s\n", modbus_strerror(errno));
         modbus_free(ctx_);
         connected_ = false;
         return false;
