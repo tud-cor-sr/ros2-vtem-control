@@ -6,5 +6,5 @@ pkgFolderPath = fullfile(pwd, "..\");
 ros2genmsg(pkgFolderPath)
 
 % parameters
-vtemDeviceAddress = "192.168.1.101";
+vtemDeviceAddress = "192.168.4.2";
 vtemPort = 502;

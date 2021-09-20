@@ -1,5 +1,5 @@
 % init workspace
-% init
+% startup
 
 % establish VtemControl class
 global vtemControl

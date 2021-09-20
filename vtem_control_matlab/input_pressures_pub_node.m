@@ -2,7 +2,7 @@
 % https://www.mathworks.com/help/ros/ug/get-started-with-ros-2.html
 
 % init workspace
-% init
+% startup
 
 % parameters
 freq = 10; % [Hz]
