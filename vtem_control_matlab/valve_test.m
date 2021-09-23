@@ -10,8 +10,8 @@ vtem_control.set_single_pressure(valveNum, commandPressure);
 
 num_cycles = 1000;
 t = 1:1:num_cycles;
-x = zeros(num_cycles);
-x_des = zeros(num_cycles);
+x = zeros(num_cycles, 1);
+x_des = zeros(num_cycles, 1);
 for i=1:1:num_cycles
     x(i) = vtem_control.get_single_pressure(valveNum);
     
