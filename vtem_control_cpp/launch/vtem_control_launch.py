@@ -2,7 +2,7 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 
 def generate_launch_description():
-    common_params = {"modbus_node": "192.168.4.2", "modbus_service": "502"}
+    common_params = {"modbus_node": "192.168.1.2", "modbus_service": "502"}
     return LaunchDescription([
         Node(
             package='vtem_control',
