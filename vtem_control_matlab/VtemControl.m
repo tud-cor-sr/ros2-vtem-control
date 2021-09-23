@@ -22,16 +22,15 @@ classdef VtemControl < handle
          delete(obj.ctx_);
       end
       function value = get_single_pressure(obj, idx)
-         addr = obj.addr_input_start_ + obj.cpx_input_offset_ + 3*idx;
-         value = read(obj.ctx_, 'inputregs', addr, 1);
+         addr = obj.addr_input_start_ + obj.cpx_input_offset_ + 1 + 3*idx;
+         value = read(obj.ctx_, 'holdingregs', addr, 1);
       end
       function data = get_all_pressures(obj)
          addr = obj.addr_input_start_ + obj.cpx_input_offset_;
-         data = read(obj.ctx_, 'inputregs', addr, 3*obj.num_valves_);
+         data = read(obj.ctx_, 'holdingregs', addr, 3*obj.num_valves_);
       end
       function set_single_pressure(obj, idx, value)
          addr = obj.addr_output_start_ + obj.cpx_output_offset_ + idx;
-         disp(addr)
          write(obj.ctx_, 'holdingregs', addr, value);
       end
       function set_all_pressures(obj, data)
