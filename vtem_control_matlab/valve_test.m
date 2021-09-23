@@ -1,5 +1,5 @@
 % parameters
-valveNum = 0; % test valves 0 to 16
+valveNum = 0; % test valves 0 to 15
 commandPressure = 450; % [mBar]
 endPressure = 0;
 
