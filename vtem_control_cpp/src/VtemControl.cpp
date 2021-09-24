@@ -60,6 +60,8 @@ bool vtem_control::VtemControl::disconnect() {
 }
 
 bool vtem_control::VtemControl::get_single_motion_app(int slot_idx, int &motion_app_id, int &valve_state) {
+    ensure_connection();
+
     const auto addr = address_input_start + cpx_input_offset + 2*3*slot_idx;
     uint16_t status; // this should read two bytes containing the slot status information
     
@@ -93,6 +95,8 @@ bool vtem_control::VtemControl::set_single_motion_app(int slot_idx, int motion_a
             02: first valve is active
             03: both valves are active
     */
+
+    ensure_connection();
 
     uint16_t command_first_byte = (app_control << 6) | motion_app_id;
     uint16_t command_second_byte = 0;
