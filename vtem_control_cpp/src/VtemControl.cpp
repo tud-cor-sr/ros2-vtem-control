@@ -86,7 +86,7 @@ int vtem_control::VtemControl::get_single_motion_app(int slot_idx) {
     return motion_app_id;
 }
 
-bool vtem_control::VtemControl::set_single_motion_app(int slot_idx, int motion_app_id = 3, int app_control = 0) {
+bool vtem_control::VtemControl::set_single_motion_app(int slot_idx, int motion_app_id = 61, int app_control = 0) {
     /*  App control for motion app 03 (proportional pressure regulation):
             00: both valves are inactive
             01: second valve is active
@@ -106,9 +106,9 @@ bool vtem_control::VtemControl::set_single_motion_app(int slot_idx, int motion_a
     return true;
 }
 
-bool vtem_control::VtemControl::set_all_motion_apps(int motion_app_id = 61) {
+bool vtem_control::VtemControl::set_all_motion_apps(int motion_app_id = 61, int app_control = 0) {
     for (auto slot_idx = 0; slot_idx < (num_valves / 2); slot_idx++) {
-        if (!set_single_motion_app(slot_idx, motion_app_id)) {
+        if (!set_single_motion_app(slot_idx, motion_app_id, app_control)) {
             return false;
         }
     }
@@ -117,17 +117,17 @@ bool vtem_control::VtemControl::set_all_motion_apps(int motion_app_id = 61) {
 
 bool vtem_control::VtemControl::activate_pressure_regulation(int slot_idx = -1) {
     if (slot_idx == -1) {
-        return set_all_motion_apps(3);
+        return set_all_motion_apps(3, 3);
     } else {
-        return set_single_motion_app(3);
+        return set_single_motion_app(3, 3);
     }
 }
 
 bool vtem_control::VtemControl::deactivate_pressure_regulation(int slot_idx = -1) {
     if (slot_idx == -1) {
-        return set_all_motion_apps(61);
+        return set_all_motion_apps(61, 0);
     } else {
-        return set_single_motion_app(61);
+        return set_single_motion_app(61, 0);
     }
 }
 
