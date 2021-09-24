@@ -61,7 +61,6 @@ classdef VtemControl < handle
          motion_app_id_bin = bitget(motion_app_id, 6:-1:1);
          app_control_bin = bitget(app_control, 2:-1:1);
          app_option_bin = bitget(app_option, 8:-1:1);
-         app_option_bin = ones(1,8);
          
          command_bits = [app_option_bin app_control_bin motion_app_id_bin];
          command = bit2dec(command_bits);
