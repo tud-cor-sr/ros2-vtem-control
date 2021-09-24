@@ -21,6 +21,12 @@ classdef VtemControl < handle
          % clear obj.ctx_;
          delete(obj.ctx_);
       end
+      function [value, bits_str] = read_address(obj, addr)
+         value = read(obj.ctx_, 'holdingregs', addr, 1);
+         bits = bitget(value, 8:-1:1);
+         bits_str = num2str(bits);
+         bits_str(isspace(bits_str)) = '';
+      end
       function [motion_app_id, valve_state] = get_single_motion_app(obj, slotIdx)
          % we read two bytes for all 3 entries 
          % (e.g. status, actual value 1, actual value 2)
