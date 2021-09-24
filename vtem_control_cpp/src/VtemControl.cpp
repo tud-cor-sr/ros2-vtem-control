@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstring>
+#include <iostream>
 #include <stdexcept>
 
 
@@ -68,10 +69,12 @@ bool vtem_control::VtemControl::get_single_motion_app(int slot_idx, int &motion_
         throw std::runtime_error("Failed to read slot status register.");
     }
 
+    /* example to extract individual bytes: 
     // mask: 0xFF (only selects first byte)
     // shift operator: delete the first 8 bits
-    // uint8_t first_byte = status & 0xFF;
-    // uint8_t second_byte = (status >> 8) & 0xFF;
+    uint8_t first_byte = status & 0xFF;
+    uint8_t second_byte = (status >> 8) & 0xFF;
+    */
 
     motion_app_id = status & 0x3F;
     valve_state = (status >> 6) & 0x03;
@@ -122,7 +125,7 @@ bool vtem_control::VtemControl::activate_pressure_regulation(int slot_idx = -1) 
     if (slot_idx == -1) {
         return set_all_motion_apps(3, 3);
     } else {
-        return set_single_motion_app(3, 3);
+        return set_single_motion_app(slot_idx, 3, 3);
     }
 }
 
@@ -130,7 +133,7 @@ bool vtem_control::VtemControl::deactivate_pressure_regulation(int slot_idx = -1
     if (slot_idx == -1) {
         return set_all_motion_apps(61, 0);
     } else {
-        return set_single_motion_app(61, 0);
+        return set_single_motion_app(slot_idx, 61, 0);
     }
 }
 
