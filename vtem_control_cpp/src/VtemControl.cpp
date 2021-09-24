@@ -164,9 +164,9 @@ int vtem_control::VtemControl::get_single_pressure(const int valve_idx) {
     ensure_motion_app(valve_idx, 3, 3);
 
     const auto dest = &input_buffer_[valve_idx];
-    const auto addr = address_input_start + cpx_input_offset + 3*slot_idx + 1 + slot_remain;
+    const auto addr = address_input_start + cpx_input_offset + 2*3*slot_idx + 1 + slot_remain;
 
-    if (modbus_read_registers(ctx_, addr, 1, dest) == -1) {
+    if (modbus_read_registers(ctx_, addr, 2, dest) == -1) {
         throw std::runtime_error("Failed to read CPX modbus register.");
     }
 
@@ -180,7 +180,7 @@ void vtem_control::VtemControl::set_single_pressure(const int valve_idx, const i
     int slot_remain = valve_idx - 2*slot_idx; // either 0 or 1 for valve in slot
     ensure_motion_app(valve_idx, 3, 3);
 
-    const auto addr = address_output_start + cpx_output_offset + 3*slot_idx + 1 +  slot_remain;
+    const auto addr = address_output_start + cpx_output_offset + 3*slot_idx + 1 + slot_remain;
 
     if (modbus_write_register(ctx_, addr, pressure) == -1) {
         throw std::runtime_error("Failed to write CPX modbus register.");
