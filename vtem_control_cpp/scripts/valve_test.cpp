@@ -66,7 +66,7 @@ int main() {
 
         if (i % 50 == 0) {
             std::cout << "Valve " << valveNum << " sensor: " << sensorvalue
-                      << " mbar\toutput: " << output << " mbar" << std::endl;
+                      << " mbar\toutput: " << output << " mBar" << std::endl;
         }
     }
 
@@ -78,7 +78,7 @@ int main() {
 
     // Read pressure of valve 0.
     std::cout << "Valve " << valveNum << " :" << vtemControl.get_single_pressure(valveNum)
-              << " mbar" << std::endl;
+              << " mBar" << std::endl;
 
     // Set motion app for all valves to 03 (proportional pressure regulation)
     if (!vtemControl.deactivate_pressure_regulation(slotId)) {
