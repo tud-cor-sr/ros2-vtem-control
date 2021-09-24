@@ -60,22 +60,21 @@ bool vtem_control::VtemControl::disconnect() {
 }
 
 int vtem_control::VtemControl::get_single_motion_app(int slot_idx) {
-    const auto addr = address_input_start + cpx_input_offset + 3*slot_idx;
-    uint16_t slot_status; // this should read two bytes containing the slot status information
+    const auto addr = address_input_start + cpx_input_offset + 2*3*slot_idx;
+    uint16_t status; // this should read two bytes containing the slot status information
     
-    if (modbus_read_registers(ctx_, addr, 1, &slot_status) == -1) {
+    if (modbus_read_registers(ctx_, addr, 2, &status) == -1) {
         throw std::runtime_error("Failed to read slot status register.");
     }
 
-    /* Attention: I am not sure about this implementation */
-    // extract first 6 bits from first byte to read actual motion app id
-    bool motion_app_bits[6];
-    int motion_app_id;
-    for(int i = 0; i < 6; i++) {
-        motion_app_bits[i] = ((slot_status >> i) & 0x01);
-        motion_app_id = (motion_app_id << 1) | (motion_app_bits[i] - '0');
-    }
+    // mask: 0xFF (only selects first byte)
+    // shift operator: delete the first 8 bits
+    uint8_t first_byte = status & 0xFF;
+    uint8_t second_byte = (status >> 8) & 0xFF;
 
+    uint8_t motion_app_id = status & 0x3F;
+    uint8_t valve_state = (status >> 6) & 0x03;
+ 
     /*  extract bits 6-8 from first byte to read actual valve state
         for motion app 03:
             00: both valves are inactive
@@ -83,48 +82,23 @@ int vtem_control::VtemControl::get_single_motion_app(int slot_idx) {
             02: first valve is active
             03: both valves are active
     */
-    bool valve_state_bits[6];
-    int valve_state;
-    for(int i = 6; i < 8; i++) {
-        valve_state_bits[i] = ((slot_status >> i) & 0x01);
-        valve_state = (valve_state << 1) | (valve_state_bits[i] - '0');
-    }
 
     return motion_app_id;
 }
 
-bool vtem_control::VtemControl::set_single_motion_app(int slot_idx, int motion_app_id = 61) {
-    const auto addr = address_output_start + cpx_output_offset + 3*slot_idx;
+bool vtem_control::VtemControl::set_single_motion_app(int slot_idx, int motion_app_id = 3, int app_control = 0) {
+    /*  App control for motion app 03 (proportional pressure regulation):
+            00: both valves are inactive
+            01: second valve is active
+            02: first valve is active
+            03: both valves are active
+    */
 
-    // TODO: cleanup this code when its working at the end
-
-    /* Attention: I am not sure about this implementation */
-
-    // unsigned char valve_mode[6]; // 6 bits to determine valve mode (e.g. motion app id)
-    // std::memcpy(&valve_mode, &motion_app_id, sizeof(valve_mode));
+    uint16_t command_first_byte = (valve_state << 6) | motion_app_id;
+    uint16_t command_second_byte = 0;
+    uint16_t command = (command_second_byte << 8) | command_first_byte;
     
-    // int valve_state = 03; // we want to activate both valves
-    // unsigned char valve_state_bits[2]; // 2 bits to determine the valve state
-    // std::memcpy(&valve_state_bits, &valve_state, sizeof(valve_state));
-
-    // // copy everything to the command bytes
-    // std::memcpy(&command_bytes[0], &valve_mode, sizeof(valve_mode));
-    // std::memcpy(&command_bytes[7], &valve_state_bits, sizeof(valve_state_bits));
-
-    // unsigned char command_bytes[2]; // two bytes encapsulating the command
-
-    // uint16_t command = 0;
-    // for ( size_t i = 0; i < 2; ++i ) {
-    //     command += command_bytes[i] << 8 * i;
-    // }
-
-    /* Attention: I am not sure about this implementation */
-    uint8_t command_first_byte = 0;
-    uint8_t command_second_byte = 0;
-    int valve_state = 03; // we want to activate both valves
-    command_first_byte = (motion_app_id << 6) | valve_state;
-    uint16_t command = (command_first_byte << 8) | command_second_byte;
-
+    const auto addr = address_output_start + cpx_output_offset + 3*slot_idx;
     if (modbus_write_register(ctx_, addr, command) == -1) {
         throw std::runtime_error("Failed to write register for setting motion app.");
     }
