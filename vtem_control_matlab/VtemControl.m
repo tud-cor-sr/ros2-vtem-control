@@ -69,8 +69,11 @@ classdef VtemControl < handle
          write(obj.ctx_, 'holdingregs', addr, command);
       end
       function value = get_single_pressure(obj, idx)
-         addr = obj.addr_input_start_ + obj.cpx_input_offset_ + 1 + 3*idx;
-         value = read(obj.ctx_, 'holdingregs', addr, 1);
+         addr = obj.addr_input_start_ + obj.cpx_input_offset_ + 2*3*idx + 1;
+         bytes = read(obj.ctx_, 'holdingregs', addr, 2);
+
+         bits = [bitget(bytes(1), 8:-1:1) bitget(bytes(2), 8:-1:1)];
+         value = bit2dec(bits);
       end
       function data = get_all_pressures(obj)
          addr = obj.addr_input_start_ + obj.cpx_input_offset_;
