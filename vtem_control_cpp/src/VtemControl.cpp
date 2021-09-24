@@ -59,7 +59,7 @@ bool vtem_control::VtemControl::disconnect() {
     return false;
 }
 
-int vtem_control::VtemControl::get_single_motion_app(int slot_idx) {
+bool vtem_control::VtemControl::get_single_motion_app(int slot_idx, int &motion_app_id, int &valve_state) {
     const auto addr = address_input_start + cpx_input_offset + 2*3*slot_idx;
     uint16_t status; // this should read two bytes containing the slot status information
     
@@ -69,11 +69,11 @@ int vtem_control::VtemControl::get_single_motion_app(int slot_idx) {
 
     // mask: 0xFF (only selects first byte)
     // shift operator: delete the first 8 bits
-    uint8_t first_byte = status & 0xFF;
-    uint8_t second_byte = (status >> 8) & 0xFF;
+    // uint8_t first_byte = status & 0xFF;
+    // uint8_t second_byte = (status >> 8) & 0xFF;
 
-    uint8_t motion_app_id = status & 0x3F;
-    uint8_t valve_state = (status >> 6) & 0x03;
+    motion_app_id = status & 0x3F;
+    valve_state = (status >> 6) & 0x03;
  
     /*  extract bits 6-8 from first byte to read actual valve state
         for motion app 03:
@@ -83,7 +83,7 @@ int vtem_control::VtemControl::get_single_motion_app(int slot_idx) {
             03: both valves are active
     */
 
-    return motion_app_id;
+    return true;
 }
 
 bool vtem_control::VtemControl::set_single_motion_app(int slot_idx, int motion_app_id = 61, int app_control = 0) {
@@ -94,7 +94,7 @@ bool vtem_control::VtemControl::set_single_motion_app(int slot_idx, int motion_a
             03: both valves are active
     */
 
-    uint16_t command_first_byte = (valve_state << 6) | motion_app_id;
+    uint16_t command_first_byte = (app_control << 6) | motion_app_id;
     uint16_t command_second_byte = 0;
     uint16_t command = (command_second_byte << 8) | command_first_byte;
     
@@ -137,9 +137,17 @@ void vtem_control::VtemControl::ensure_connection() const {
     }
 }
 
-void vtem_control::VtemControl::ensure_motion_app(int slot_idx, int des_motion_app_id) {
-    if (get_single_motion_app(slot_idx) != des_motion_app_id) {
+void vtem_control::VtemControl::ensure_motion_app(int slot_idx, int des_motion_app_id, int des_valve_state) {
+    int motion_app_id, valve_state;
+
+    get_single_motion_app(slot_idx, motion_app_id, valve_state);
+
+    if (motion_app_id != des_motion_app_id) {
         throw std::runtime_error("Operation requires activating the suitable motion app");
+    }
+
+    if (valve_state != des_valve_state) {
+        throw std::runtime_error("Operation requires setting the desired valve state");
     }
 }
 
@@ -153,13 +161,13 @@ int vtem_control::VtemControl::get_single_pressure(const int valve_idx) {
 
     int slot_idx = get_slot_idx(valve_idx);
     int slot_remain = valve_idx - 2*slot_idx; // either 0 or 1 for valve in slot
-    ensure_motion_app(valve_idx, 3);
+    ensure_motion_app(valve_idx, 3, 3);
 
     const auto dest = &input_buffer_[valve_idx];
     const auto addr = address_input_start + cpx_input_offset + 3*slot_idx + 1 + slot_remain;
 
     if (modbus_read_registers(ctx_, addr, 1, dest) == -1) {
-        throw std::runtime_error("Failed to read VPPM register.");
+        throw std::runtime_error("Failed to read CPX modbus register.");
     }
 
     return *dest;
@@ -170,12 +178,12 @@ void vtem_control::VtemControl::set_single_pressure(const int valve_idx, const i
 
     int slot_idx = get_slot_idx(valve_idx);
     int slot_remain = valve_idx - 2*slot_idx; // either 0 or 1 for valve in slot
-    ensure_motion_app(valve_idx, 3);
+    ensure_motion_app(valve_idx, 3, 3);
 
     const auto addr = address_output_start + cpx_output_offset + 3*slot_idx + 1 +  slot_remain;
 
     if (modbus_write_register(ctx_, addr, pressure) == -1) {
-        throw std::runtime_error("Failed to write VPPM register.");
+        throw std::runtime_error("Failed to write CPX modbus register.");
     }
 }
 
