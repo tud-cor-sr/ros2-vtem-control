@@ -13,7 +13,7 @@ namespace {
     const int address_output_start = 40001;
     const int cpx_input_offset = 3;
     const int cpx_output_offset = 2;
-    const int num_valves = 16;
+    const int num_slots = 8;
 }
 
 vtem_control::VtemControl::VtemControl(const char *node, const char *service) {
@@ -22,8 +22,8 @@ vtem_control::VtemControl::VtemControl(const char *node, const char *service) {
 
     // Resize buffer space.
     // Input buffer for each valve is of the format (actual, setpoint, diagnostic).
-    input_buffer_.resize(2 * num_valves);
-    output_buffer_.resize(num_valves);
+    input_buffer_.resize(2*2 * num_slots);
+    output_buffer_.resize(2 * num_slots);
 
     // Create Modbus context.
     ctx_ = modbus_new_tcp_pi(node, service);
@@ -113,7 +113,7 @@ bool vtem_control::VtemControl::set_single_motion_app(int slot_idx, int motion_a
 }
 
 bool vtem_control::VtemControl::set_all_motion_apps(int motion_app_id = 61, int app_control = 0) {
-    for (auto slot_idx = 0; slot_idx < (num_valves / 2); slot_idx++) {
+    for (auto slot_idx = 0; slot_idx < (num_slots); slot_idx++) {
         if (!set_single_motion_app(slot_idx, motion_app_id, app_control)) {
             return false;
         }
@@ -196,7 +196,7 @@ void vtem_control::VtemControl::set_single_pressure(const int valve_idx, const i
 void vtem_control::VtemControl::get_all_pressures(std::vector<int> *output) {
     ensure_connection();
 
-    for (auto valve_idx = 0; valve_idx < num_valves; valve_idx++) {
+    for (auto valve_idx = 0; valve_idx < 2*num_slots; valve_idx++) {
         get_single_pressure(valve_idx);
         output->at(valve_idx) = input_buffer_[valve_idx];
     }
@@ -205,7 +205,7 @@ void vtem_control::VtemControl::get_all_pressures(std::vector<int> *output) {
 void vtem_control::VtemControl::set_all_pressures(const std::vector<int> &pressures) {
     ensure_connection();
 
-    for (auto valve_idx = 0; valve_idx < num_valves; valve_idx++) {
+    for (auto valve_idx = 0; valve_idx < 2*num_slots; valve_idx++) {
         set_single_pressure(valve_idx, pressures[valve_idx]);
     }
 }
