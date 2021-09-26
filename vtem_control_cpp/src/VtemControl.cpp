@@ -167,7 +167,7 @@ int vtem_control::VtemControl::get_single_pressure(const int valve_idx) {
 
     int slot_idx = get_slot_idx(valve_idx);
     int slot_remain = valve_idx - 2*slot_idx; // either 0 or 1 for valve in slot
-    ensure_motion_app(valve_idx, 3, 3);
+    ensure_motion_app(slot_idx, 3, 3);
 
     const auto dest = &input_buffer_[valve_idx];
     const auto addr = address_input_start + cpx_input_offset + 2*3*slot_idx + 1 + slot_remain;
@@ -184,7 +184,7 @@ void vtem_control::VtemControl::set_single_pressure(const int valve_idx, const i
 
     int slot_idx = get_slot_idx(valve_idx);
     int slot_remain = valve_idx - 2*slot_idx; // either 0 or 1 for valve in slot
-    ensure_motion_app(valve_idx, 3, 3);
+    ensure_motion_app(slot_idx, 3, 3);
 
     const auto addr = address_output_start + cpx_output_offset + 3*slot_idx + 1 + slot_remain;
 
