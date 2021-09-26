@@ -5,6 +5,7 @@ endPressure = 0;
 
 vtem_control = VtemControl("192.168.1.2", 502);
 vtem_control.connect();
+vtem_control.activate_pressure_regulation_all_slots();
 
 vtem_control.set_single_pressure(valveNum, commandPressure);
 

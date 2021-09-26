@@ -3,11 +3,12 @@ classdef VtemControl < handle
       DeviceAddress_
       Port_
       ctx_
+      connected_ = false;
       addr_input_start_ = 45392;
       addr_output_start_ = 40001;
       cpx_input_offset_ = 3;
       cpx_output_offset_ = 2;
-      num_valves_ = 16;
+      num_slots_ = 8;
    end
    methods
       function obj = VtemControl(DeviceAddress, Port)
@@ -16,10 +17,17 @@ classdef VtemControl < handle
       end
       function connect(obj)
          obj.ctx_ = modbus('tcpip', obj.DeviceAddress_, obj.Port_);
+         obj.connected_ = true;
       end
       function disconnect(obj)
          % clear obj.ctx_;
          delete(obj.ctx_);
+         obj.connected_ = false;
+      end
+      function ensure_connection(obj)
+         if obj.connected_ ~= true
+             % TODO: raise error / throw exception
+         end
       end
       function [value, bits_str] = read_address(obj, addr)
          value = read(obj.ctx_, 'holdingregs', addr, 1);
@@ -28,6 +36,8 @@ classdef VtemControl < handle
          bits_str(isspace(bits_str)) = '';
       end
       function [motion_app_id, valve_state] = get_single_motion_app(obj, slotIdx)
+         obj.ensure_connection();
+          
          % we read two bytes for all 3 entries 
          % (e.g. status, actual value 1, actual value 2)
          addr = obj.addr_input_start_ + obj.cpx_input_offset_ + 2*3*slotIdx;
@@ -56,6 +66,8 @@ classdef VtemControl < handle
          app_state = bit2dec(app_state_bits);
       end
       function set_single_motion_app(obj, slotIdx, motion_app_id, app_control)
+         obj.ensure_connection();
+          
          app_option = 0;
          
          motion_app_id_bin = bitget(motion_app_id, 6:-1:1);
@@ -68,24 +80,71 @@ classdef VtemControl < handle
          addr = obj.addr_output_start_ + obj.cpx_output_offset_ + 3*slotIdx;
          write(obj.ctx_, 'holdingregs', addr, command);
       end
-      function value = get_single_pressure(obj, idx)
-         addr = obj.addr_input_start_ + obj.cpx_input_offset_ + 2*3*idx + 1;
+      function set_all_motion_apps(obj, motion_app_id, app_control)
+          for slotIdx = 0:1:(obj.num_slots_-1)
+              obj.set_single_motion_app(slotIdx, motion_app_id, app_control);
+          end
+      end
+      function ensure_motion_app(obj, slotIdx, des_motion_app_id, des_valve_state)
+         [motion_app_id, valve_state] = get_single_motion_app(obj, slotIdx);
+          
+         if motion_app_id ~= des_motion_app_id
+             % TODO: raise error / throw exception
+         end
+         
+         if valve_state ~= des_valve_state
+             % TODO: raise error / throw exception
+         end
+      end
+      function activate_pressure_regulation_single_slot(obj, slotIdx)
+         obj.set_single_motion_app(slotIdx, 3, 3);
+      end
+      function deactivate_pressure_regulation_single_slot(obj, slotIdx)
+         obj.set_single_motion_app(slotIdx, 61, 0);
+      end
+      function activate_pressure_regulation_all_slots(obj)
+         obj.set_all_motion_apps(3, 3);
+      end
+      function deactivate_pressure_regulation_all_slots(obj)
+         obj.set_all_motion_apps(61, 0);
+      end
+      function [slotIdx, slotRemain] = get_slot_idx_from_valve_idx(valveIdx)
+          slotIdx = floor(valveIdx);
+          slotRemain = valveIdx - 2*slotIdx;
+      end
+      function value = get_single_pressure(obj, valveIdx)
+         obj.ensure_connection(); 
+         
+         [slotIdx, slotRemain] = obj.get_slot_idx_from_valve_idx(valveIdx);
+         
+         obj.ensure_motion_app(slotIdx, 3, 3);
+          
+         addr = obj.addr_input_start_ + obj.cpx_input_offset_ + 2*3*slotIdx + 1 + slotRemain;
          bytes = read(obj.ctx_, 'holdingregs', addr, 2);
 
          bits = [bitget(bytes(1), 8:-1:1) bitget(bytes(2), 8:-1:1)];
          value = bit2dec(bits);
       end
-      function data = get_all_pressures(obj)
-         addr = obj.addr_input_start_ + obj.cpx_input_offset_;
-         data = read(obj.ctx_, 'holdingregs', addr, 3*obj.num_valves_);
-      end
-      function set_single_pressure(obj, idx, value)
-         addr = obj.addr_output_start_ + obj.cpx_output_offset_ + idx;
+      function set_single_pressure(obj, valveIdx, value)
+         obj.ensure_connection();
+         
+         [slotIdx, slotRemain] = obj.get_slot_idx_from_valve_idx(valveIdx);
+         
+         obj.ensure_motion_app(slotIdx, 3, 3);
+          
+         addr = obj.addr_output_start_ + obj.cpx_output_offset_ + 3*slotIdx + 1 + slotRemain;
          write(obj.ctx_, 'holdingregs', addr, value);
       end
-      function set_all_pressures(obj, data)
-         addr = obj.addr_output_start_ + obj.cpx_output_offset_;
-         write(obj.ctx_, 'holdingregs', addr, data);
+      function pressures = get_all_pressures(obj)
+          pressures = zeros(2*obj.num_slots_, 1);
+          for valveIdx = 0:1:(2*obj.num_slots_-1)
+              pressures(valveIdx + 1) = obj.get_single_pressure(valveIdx);
+          end
+      end
+      function set_all_pressures(obj, pressures)
+          for valveIdx = 0:1:(2*obj.num_slots_-1)
+              obj.set_single_pressure(valveIdx, pressures(valveIdx + 1));
+          end
       end
    end
 end
