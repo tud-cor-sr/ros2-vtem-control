@@ -25,7 +25,7 @@ namespace vtem_control {
 
         bool disconnect();
 
-        int get_slot_idx(int valve_idx) const;
+        int get_slot_idx_from_valve_idx(int valve_idx) const;
 
         bool get_single_motion_app(int slot_idx, int &motion_app_id, int &valve_state);
 

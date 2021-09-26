@@ -157,7 +157,7 @@ void vtem_control::VtemControl::ensure_motion_app(int slot_idx, int des_motion_a
     }
 }
 
-int vtem_control::VtemControl::get_slot_idx(const int valve_idx) const {
+int vtem_control::VtemControl::get_slot_idx_from_valve_idx(const int valve_idx) const {
     int slot_idx = std::floor(valve_idx / 2); // index of slot [0-7]
     return slot_idx;
 }
@@ -165,7 +165,7 @@ int vtem_control::VtemControl::get_slot_idx(const int valve_idx) const {
 int vtem_control::VtemControl::get_single_pressure(const int valve_idx) {
     ensure_connection();
 
-    int slot_idx = get_slot_idx(valve_idx);
+    int slot_idx = get_slot_idx_from_valve_idx(valve_idx);
     int slot_remain = valve_idx - 2*slot_idx; // either 0 or 1 for valve in slot
     ensure_motion_app(slot_idx, 3, 3);
 
@@ -182,7 +182,7 @@ int vtem_control::VtemControl::get_single_pressure(const int valve_idx) {
 void vtem_control::VtemControl::set_single_pressure(const int valve_idx, const int pressure = 0) {
     ensure_connection();
 
-    int slot_idx = get_slot_idx(valve_idx);
+    int slot_idx = get_slot_idx_from_valve_idx(valve_idx);
     int slot_remain = valve_idx - 2*slot_idx; // either 0 or 1 for valve in slot
     ensure_motion_app(slot_idx, 3, 3);
 

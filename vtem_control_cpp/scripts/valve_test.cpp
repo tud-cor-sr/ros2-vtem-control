@@ -23,7 +23,7 @@ int main() {
     vtem_control::VtemControl vtemControl("192.168.1.2", "502");
 
     unsigned int valveNum = 0;          // test valves 0 to 15
-    unsigned int slotId = vtemControl.get_slot_idx(valveNum); 
+    unsigned int slotId = vtemControl.get_slot_idx_from_valve_idx(valveNum); 
     
     unsigned int commandPressure = 450; // tested 0 to 1000 mbar
     unsigned int endPressure = 0;
