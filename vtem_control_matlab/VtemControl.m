@@ -26,7 +26,7 @@ classdef VtemControl < handle
       end
       function ensure_connection(obj)
          if obj.connected_ ~= true
-             % TODO: raise error / throw exception
+             throw(MException("VtemControl:ensure_connection", "Operation requires a modbus connection."))
          end
       end
       function [value, bits_str] = read_address(obj, addr)
@@ -89,11 +89,11 @@ classdef VtemControl < handle
          [motion_app_id, valve_state] = get_single_motion_app(obj, slotIdx);
           
          if motion_app_id ~= des_motion_app_id
-             % TODO: raise error / throw exception
+             throw(MException("VtemControl:ensure_motion_app", "Operation requires activating the suitable motion app."))
          end
          
          if valve_state ~= des_valve_state
-             % TODO: raise error / throw exception
+             throw(MException("VtemControl:ensure_motion_app", "Operation requires setting the desired valve state."))
          end
       end
       function activate_pressure_regulation_single_slot(obj, slotIdx)
