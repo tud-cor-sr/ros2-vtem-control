@@ -20,7 +20,7 @@ int step_func(int i) {
 
 int main() {
     // Create VtemControl controller.
-    vtem_control::VtemControl vtemControl("192.168.1.2", "502");
+    vtem_control::VtemControl vtemControl("192.168.4.3", "502");
 
     unsigned int valveNum = 0;          // test valves 0 to 15
     unsigned int slotId = vtemControl.get_slot_idx_from_valve_idx(valveNum); 

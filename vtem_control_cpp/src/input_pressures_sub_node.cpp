@@ -19,7 +19,7 @@ public:
     this->get_parameter("input_pressures_topic", vtem_input_pressures_topic_);
 
     // VTEM modbus network information
-    this->declare_parameter<std::string>("modbus_node", "192.168.1.2");
+    this->declare_parameter<std::string>("modbus_node", "192.168.4.3");
     this->declare_parameter<std::string>("modbus_service", "502");
     this->get_parameter("modbus_node", modbus_node_);
     this->get_parameter("modbus_service", modbus_service_);

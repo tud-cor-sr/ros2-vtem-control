@@ -3,7 +3,7 @@ valveNum = 0; % test valves 0 to 15
 commandPressure = 450; % [mBar]
 endPressure = 0;
 
-vtem_control = VtemControl("192.168.1.2", 502);
+vtem_control = VtemControl("192.168.4.3", 502);
 vtem_control.connect();
 vtem_control.activate_pressure_regulation_all_slots();
 
