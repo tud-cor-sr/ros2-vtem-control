@@ -12,7 +12,7 @@ classdef VtemControl < handle
    end
    methods(Static)
       function [slotIdx, slotRemain] = get_slot_idx_from_valve_idx(valveIdx)
-         slotIdx = floor(valveIdx);
+         slotIdx = floor(valveIdx / 2);
          slotRemain = valveIdx - 2*slotIdx;
       end
    end
