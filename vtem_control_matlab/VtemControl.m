@@ -10,6 +10,12 @@ classdef VtemControl < handle
       cpx_output_offset_ = 2;
       num_slots_ = 8;
    end
+   methods(Static)
+      function [slotIdx, slotRemain] = get_slot_idx_from_valve_idx(valveIdx)
+         slotIdx = floor(valveIdx);
+         slotRemain = valveIdx - 2*slotIdx;
+      end
+   end
    methods
       function obj = VtemControl(DeviceAddress, Port)
          obj.DeviceAddress_ = DeviceAddress;
@@ -108,14 +114,10 @@ classdef VtemControl < handle
       function deactivate_pressure_regulation_all_slots(obj)
          obj.set_all_motion_apps(61, 0);
       end
-      function [slotIdx, slotRemain] = get_slot_idx_from_valve_idx(valveIdx)
-          slotIdx = floor(valveIdx);
-          slotRemain = valveIdx - 2*slotIdx;
-      end
       function value = get_single_pressure(obj, valveIdx)
          obj.ensure_connection(); 
          
-         [slotIdx, slotRemain] = obj.get_slot_idx_from_valve_idx(valveIdx);
+         [slotIdx, slotRemain] = VtemControl.get_slot_idx_from_valve_idx(valveIdx);
          
          obj.ensure_motion_app(slotIdx, 3, 3);
           
@@ -128,7 +130,7 @@ classdef VtemControl < handle
       function set_single_pressure(obj, valveIdx, value)
          obj.ensure_connection();
          
-         [slotIdx, slotRemain] = obj.get_slot_idx_from_valve_idx(valveIdx);
+         [slotIdx, slotRemain] = VtemControl.get_slot_idx_from_valve_idx(valveIdx);
          
          obj.ensure_motion_app(slotIdx, 3, 3);
           
