@@ -1,5 +1,5 @@
 % parameters
-valveNum = 0; % test valves 0 to 15
+valveIdx = 0; % test valves 0 to 15
 commandPressure = 450; % [mBar]
 endPressure = 0;
 
@@ -20,15 +20,15 @@ t = 1:1:num_cycles;
 x = zeros(num_cycles, 1);
 x_des = zeros(num_cycles, 1);
 for i=1:1:num_cycles
-    x(i) = vtem_control.get_single_pressure(valveNum);
+    x(i) = vtem_control.get_single_pressure(valveIdx);
     
     x_des(i) = step_func(i);
-    vtem_control.set_single_pressure(valveNum, x_des(i));
+    vtem_control.set_single_pressure(valveIdx, x_des(i));
     
     pause(0.1);
 end
 
-vtem_control.set_single_pressure(valveNum, endPressure);
+vtem_control.set_single_pressure(valveIdx, endPressure);
 
 figure
 plot(t,x,t,x_des);
