@@ -33,6 +33,8 @@ namespace vtem_control {
         bool set_single_motion_app(int slot_idx, int motion_app_id, int app_control);
         bool set_all_motion_apps(int motion_app_id, int app_control);
 
+        bool acknowledge_errors(int slot_idx);
+
         bool activate_pressure_regulation(int slot_idx);
         bool deactivate_pressure_regulation(int slot_idx);
 

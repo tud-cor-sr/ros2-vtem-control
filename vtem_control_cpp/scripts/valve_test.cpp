@@ -3,7 +3,7 @@
 #include <iostream>
 #include <thread>
 
-#define STEP_TEST false // send step signals to valve
+#define STEP_TEST true // send step signals to valve
 
 /*
    Test program for actuating a single valve.
@@ -22,11 +22,10 @@ int main() {
     // Create VtemControl controller.
     vtem_control::VtemControl vtemControl("192.168.4.3", "502");
 
-    unsigned int valveNum = 0;          // test valves 0 to 15
-    unsigned int slotId = vtemControl.get_slot_idx_from_valve_idx(valveNum); 
+    unsigned int valveIdx = 0;          // test valves 0 to 15
+    unsigned int slotIdx = vtemControl.get_slot_idx_from_valve_idx(valveIdx); 
     
-    unsigned int commandPressure = 450; // tested 0 to 1000 mbar
-    unsigned int endPressure = 0;
+    unsigned int commandedPressure = 100; // tested 0 to 450 mbar
 
     // Connect.
     if (!vtemControl.connect()) {
@@ -34,57 +33,48 @@ int main() {
         return -1;
     }
 
+    // acknowledge errors for all slots
+    vtemControl.acknowledge_errors(-1);
+
     // Set motion app for all valves to 03 (proportional pressure regulation)
-    if (!vtemControl.activate_pressure_regulation(slotId)) {
+    if (!vtemControl.activate_pressure_regulation(slotIdx)) {
         std::cout << "Failed to activate pressure regulation." << std::endl;
         return -1;
     }
 
-    // Set valve 0 to 1 bar.
-    vtemControl.set_single_pressure(valveNum, commandPressure);
-    int sensorvalue;
-    double output;
+    vtemControl.set_single_pressure(valveIdx, commandedPressure);
+    int actualPressure;
 
     int cycles = 1000;
-    std::vector<double> x(cycles), pressures(cycles),
-            commandpressures(cycles); // for logging pressure profile
+    std::vector<double> x(cycles), actualPressures(cycles),
+            commandedPressures(cycles); // for logging pressure profile
     for (int i = 0; i < cycles; i++) {
-        // Wait 1 ms.
-        // std::this_thread::sleep_for(std::chrono::millisecofalsends(1));
+        // Wait 10 ms.
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
         if (STEP_TEST) {
-            commandPressure = step_func(i);
+            commandedPressure = step_func(i);
         }
-        commandpressures.at(i) = commandPressure;
+        commandedPressures.at(i) = commandedPressure;
         // Read pressure of valve 0.
-        sensorvalue = vtemControl.get_single_pressure(valveNum);
+        actualPressure = vtemControl.get_single_pressure(valveIdx);
         x.at(i) = i;
-        pressures.at(i) = sensorvalue;
-        output = commandPressure;
+        actualPressures.at(i) = actualPressure;
 
-        vtemControl.set_single_pressure(valveNum, commandPressure);
+        vtemControl.set_single_pressure(valveIdx, commandedPressure);
 
         if (i % 50 == 0) {
-            std::cout << "Valve " << valveNum << " sensor: " << sensorvalue
-                      << " mbar\toutput: " << output << " mBar" << std::endl;
+            std::cout << "Valve " << valveIdx << " actual pressure: " << actualPressure
+                      << " mBar\tcommanded pressure: " << commandedPressure << " mBar" << std::endl;
         }
     }
 
-    // Set valve 0 to 0 bar (off).
-    vtemControl.set_single_pressure(valveNum, endPressure);
-
-    // Wait 100 ms.
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
-    // Read pressure of valve 0.
-    std::cout << "Valve " << valveNum << " :" << vtemControl.get_single_pressure(valveNum)
-              << " mBar" << std::endl;
-
-    // Set motion app for all valves to 03 (proportional pressure regulation)
-    if (!vtemControl.deactivate_pressure_regulation(slotId)) {
+    if (!vtemControl.deactivate_pressure_regulation(slotIdx)) {
         std::cout << "Failed to deactivate pressure regulation." << std::endl;
         return -1;
     }
+
+    // std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 
     // Disconnect.
     vtemControl.disconnect();

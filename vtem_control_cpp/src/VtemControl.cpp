@@ -1,11 +1,13 @@
 #include "modbus/modbus-tcp.h"
 #include "VtemControl.hpp"
 
+#include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <iostream>
 #include <stdexcept>
+#include <thread>
 
 
 namespace {
@@ -121,19 +123,96 @@ bool vtem_control::VtemControl::set_all_motion_apps(int motion_app_id = 61, int 
     return true;
 }
 
-bool vtem_control::VtemControl::activate_pressure_regulation(int slot_idx = -1) {
+bool vtem_control::VtemControl::acknowledge_errors(int slot_idx = -1) {
+    int des_valve_mode = 62;
+    int des_app_control = 1;
+
     if (slot_idx == -1) {
-        return set_all_motion_apps(3, 3);
+        set_all_motion_apps(des_valve_mode, des_app_control);
     } else {
+        set_single_motion_app(slot_idx, des_valve_mode, des_app_control);
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    return true;
+}
+
+bool vtem_control::VtemControl::activate_pressure_regulation(int slot_idx = -1) {
+    int des_valve_mode = 3;
+    int des_app_control = 3;
+    int des_valve_state = 2;
+    float timeout =  10; // [s] duration during which we wait for the pressure regulation to deactivate
+    float sampling_rate = 100; // frequency with which we check the currently activate valve mode
+
+    if (slot_idx == -1) {
+        return set_all_motion_apps(des_valve_mode, des_app_control);
+    } else {
+        set_single_motion_app(slot_idx, des_valve_mode, des_app_control);
+
+        int actual_valve_mode, valve_state;
+        get_single_motion_app(slot_idx, actual_valve_mode, valve_state);
+
+        int i = 0;
+        // wait to reach valve mode 3 (pressure regulation) and valve state 2 (e.g. running)
+        while (actual_valve_mode != des_valve_mode || valve_state != des_valve_state) {
+            if (i / sampling_rate > timeout) {
+                return false;
+            }
+
+            get_single_motion_app(slot_idx, actual_valve_mode, valve_state);
+
+            // std::cout << "Activate pressure reguluation idx: " << i << " actual_valve_mode: " << actual_valve_mode << " valve_state: " << valve_state << std::endl;
+
+            i += 1;
+            std::this_thread::sleep_for(std::chrono::milliseconds(int(1/sampling_rate*1000)));
+        }
+        return true;
+
         return set_single_motion_app(slot_idx, 3, 3);
     }
 }
 
 bool vtem_control::VtemControl::deactivate_pressure_regulation(int slot_idx = -1) {
+    int des_valve_mode = 61;
+    int des_app_control = 0;
+    int des_valve_state = 1;
+    float timeout =  10; // [s] duration during which we wait for the pressure regulation to deactivate
+    float sampling_rate = 100; // frequency with which we check the currently activate valve mode
+    float exhaust_duration = 1; // [s] duration to let valve exhaust before shutting off motion app
+
     if (slot_idx == -1) {
-        return set_all_motion_apps(61, 0);
+        // Set valves to 0 bar (off).
+        // vtemControl.set_single_pressure(2*slot_idx, 0);
+
+        return set_all_motion_apps(des_valve_mode, des_app_control);
     } else {
-        return set_single_motion_app(slot_idx, 61, 0);
+        // Set valves to 0 bar (off).
+        set_single_pressure(2*slot_idx, 0);
+        set_single_pressure(2*slot_idx + 1, 0);
+
+        // take some time to release pressure before shutting of the motion app
+        std::this_thread::sleep_for(std::chrono::milliseconds(int(exhaust_duration * 1000)));
+
+        set_single_motion_app(slot_idx, des_valve_mode, des_app_control);
+
+        int actual_valve_mode, valve_state;
+        get_single_motion_app(slot_idx, actual_valve_mode, valve_state);
+
+        int i = 0;
+        while (actual_valve_mode != des_valve_mode || valve_state != des_valve_state) {
+            if (i / sampling_rate > timeout) {
+                return false;
+            }
+
+            get_single_motion_app(slot_idx, actual_valve_mode, valve_state);
+
+            // std::cout << "Deactivate pressure reguluation idx: " << i << " actual_valve_mode: " << actual_valve_mode << " valve_state: " << valve_state << std::endl;
+
+            i += 1;
+            std::this_thread::sleep_for(std::chrono::milliseconds(int(1/sampling_rate*1000)));
+        }
+        return true;
     }
 }
 
@@ -167,7 +246,7 @@ int vtem_control::VtemControl::get_single_pressure(const int valve_idx) {
 
     int slot_idx = get_slot_idx_from_valve_idx(valve_idx);
     int slot_remain = valve_idx - 2*slot_idx; // either 0 or 1 for valve in slot
-    ensure_motion_app(slot_idx, 3, 3);
+    ensure_motion_app(slot_idx, 3, 2); // motion app pressure regulation with valve state "running"
 
     const auto dest = &input_value_buffer_[valve_idx];
     const auto addr = address_input_start + cpx_input_offset + 2*3*slot_idx + 1 + slot_remain;
@@ -184,7 +263,7 @@ void vtem_control::VtemControl::set_single_pressure(const int valve_idx, const i
 
     int slot_idx = get_slot_idx_from_valve_idx(valve_idx);
     int slot_remain = valve_idx - 2*slot_idx; // either 0 or 1 for valve in slot
-    ensure_motion_app(slot_idx, 3, 3);
+    ensure_motion_app(slot_idx, 3, 2); // motion app pressure regulation with valve state "running"
 
     const auto addr = address_output_start + cpx_output_offset + 3*slot_idx + 1 + slot_remain;
 
