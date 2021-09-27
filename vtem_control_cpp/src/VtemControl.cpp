@@ -22,8 +22,8 @@ vtem_control::VtemControl::VtemControl(const char *node, const char *service) {
 
     // Resize buffer space.
     // Input buffer for each valve is of the format (actual, setpoint, diagnostic).
-    input_buffer_.resize(2*2 * num_slots);
-    output_buffer_.resize(2 * num_slots);
+    input_status_buffer_.resize(2 * num_slots);
+    input_value_buffer_.resize(2 * 2 * num_slots);
 
     // Create Modbus context.
     ctx_ = modbus_new_tcp_pi(node, service);
@@ -62,10 +62,10 @@ bool vtem_control::VtemControl::disconnect() {
 bool vtem_control::VtemControl::get_single_motion_app(int slot_idx, int &motion_app_id, int &valve_state) {
     ensure_connection();
 
+    const auto status = &input_status_buffer_[slot_idx]; // this should read two bytes containing the slot status information
     const auto addr = address_input_start + cpx_input_offset + 2*3*slot_idx;
-    uint16_t status; // this should read two bytes containing the slot status information
     
-    if (modbus_read_registers(ctx_, addr, 2, &status) == -1) {
+    if (modbus_read_registers(ctx_, addr, 2, status) == -1) {
         throw std::runtime_error("Failed to read slot status register.");
     }
 
@@ -76,8 +76,8 @@ bool vtem_control::VtemControl::get_single_motion_app(int slot_idx, int &motion_
     uint8_t second_byte = (status >> 8) & 0xFF;
     */
 
-    motion_app_id = status & 0x3F;
-    valve_state = (status >> 6) & 0x03;
+    motion_app_id = *status & 0x3F;
+    valve_state = (*status >> 6) & 0x03;
  
     /*  extract bits 6-8 from first byte to read actual valve state
         for motion app 03:
@@ -169,7 +169,7 @@ int vtem_control::VtemControl::get_single_pressure(const int valve_idx) {
     int slot_remain = valve_idx - 2*slot_idx; // either 0 or 1 for valve in slot
     ensure_motion_app(slot_idx, 3, 3);
 
-    const auto dest = &input_buffer_[valve_idx];
+    const auto dest = &input_value_buffer_[valve_idx];
     const auto addr = address_input_start + cpx_input_offset + 2*3*slot_idx + 1 + slot_remain;
 
     if (modbus_read_registers(ctx_, addr, 2, dest) == -1) {
@@ -198,7 +198,7 @@ void vtem_control::VtemControl::get_all_pressures(std::vector<int> *output) {
 
     for (auto valve_idx = 0; valve_idx < 2*num_slots; valve_idx++) {
         get_single_pressure(valve_idx);
-        output->at(valve_idx) = input_buffer_[valve_idx];
+        output->at(valve_idx) = input_value_buffer_[valve_idx];
     }
 }
 

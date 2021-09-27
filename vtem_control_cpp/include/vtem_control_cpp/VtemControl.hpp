@@ -28,6 +28,7 @@ namespace vtem_control {
         int get_slot_idx_from_valve_idx(int valve_idx) const;
 
         bool get_single_motion_app(int slot_idx, int &motion_app_id, int &valve_state);
+        bool get_single_motion_app_adjusted(int slot_idx);
 
         bool set_single_motion_app(int slot_idx, int motion_app_id, int app_control);
         bool set_all_motion_apps(int motion_app_id, int app_control);
@@ -48,8 +49,8 @@ namespace vtem_control {
 
         void ensure_motion_app(int slot_idx, int des_motion_app_id, int des_valve_state);
 
-        std::vector<uint16_t> input_buffer_;
-        std::vector<uint16_t> output_buffer_;
+        std::vector<uint16_t> input_status_buffer_;
+        std::vector<uint16_t> input_value_buffer_;
 
         modbus_t *ctx_;
 
