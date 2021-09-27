@@ -5,11 +5,17 @@ endPressure = 0;
 
 vtem_control = VtemControl("192.168.4.3", 502);
 vtem_control.connect();
+
+% Acknowledge errors
+vtem_control.set_single_motion_app(0, 62, 1);
+
+pause(5);
+
 vtem_control.activate_pressure_regulation_all_slots();
 
-vtem_control.set_single_pressure(valveNum, commandPressure);
+pause(20);
 
-num_cycles = 1000;
+num_cycles = 100;
 t = 1:1:num_cycles;
 x = zeros(num_cycles, 1);
 x_des = zeros(num_cycles, 1);
