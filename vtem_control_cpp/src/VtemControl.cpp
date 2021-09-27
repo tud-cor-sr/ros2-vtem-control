@@ -65,9 +65,9 @@ bool vtem_control::VtemControl::get_single_motion_app(int slot_idx, int &motion_
     ensure_connection();
 
     const auto status = &input_status_buffer_[slot_idx]; // this should read two bytes containing the slot status information
-    const auto addr = address_input_start + cpx_input_offset + 2*3*slot_idx;
+    const auto addr = address_input_start + cpx_input_offset + 3*slot_idx;
     
-    if (modbus_read_registers(ctx_, addr, 2, status) == -1) {
+    if (modbus_read_registers(ctx_, addr, 1, status) == -1) {
         throw std::runtime_error("Failed to read slot status register.");
     }
 
@@ -161,7 +161,8 @@ bool vtem_control::VtemControl::activate_pressure_regulation(int slot_idx = -1) 
             config_mismatch = false;
             for (auto slot_idx = 0; slot_idx < (num_slots); slot_idx++) {
                 get_single_motion_app(slot_idx, actual_valve_mode, valve_state);
-                std::cout << "Activate pressure reguluation idx: " << i << " for slot: " << slot_idx << " actual_valve_mode: " << " valve_state: " << valve_state << std::endl;
+
+                // std::cout << "Activate pressure reguluation idx: " << i << " for slot: " << slot_idx << " actual_valve_mode: " << actual_valve_mode << " valve_state: " << valve_state << std::endl;
                 
                 if (actual_valve_mode != des_valve_mode || valve_state != des_valve_state) {
                     config_mismatch = true;
@@ -232,7 +233,8 @@ bool vtem_control::VtemControl::deactivate_pressure_regulation(int slot_idx = -1
             config_mismatch = false;
             for (auto slot_idx = 0; slot_idx < (num_slots); slot_idx++) {
                 get_single_motion_app(slot_idx, actual_valve_mode, valve_state);
-                std::cout << "Activate pressure reguluation idx: " << i << " for slot: " << slot_idx << " actual_valve_mode: " << actual_valve_mode << " valve_state: " << valve_state << std::endl;
+
+                // std::cout << "Deactivate pressure reguluation idx: " << i << " for slot: " << slot_idx << " actual_valve_mode: " << actual_valve_mode << " valve_state: " << valve_state << std::endl;
                 
                 if (actual_valve_mode != des_valve_mode || valve_state != des_valve_state) {
                     config_mismatch = true;
@@ -309,9 +311,9 @@ int vtem_control::VtemControl::get_single_pressure(const int valve_idx) {
     ensure_motion_app(slot_idx, 3, 2); // motion app pressure regulation with valve state "running"
 
     const auto dest = &input_value_buffer_[valve_idx];
-    const auto addr = address_input_start + cpx_input_offset + 2*3*slot_idx + 1 + slot_remain;
+    const auto addr = address_input_start + cpx_input_offset + 3*slot_idx + 1 + 1*slot_remain;
 
-    if (modbus_read_registers(ctx_, addr, 2, dest) == -1) {
+    if (modbus_read_registers(ctx_, addr, 1, dest) == -1) {
         throw std::runtime_error("Failed to read CPX modbus register.");
     }
 
