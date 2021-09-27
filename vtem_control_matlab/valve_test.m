@@ -24,6 +24,8 @@ for i=1:1:num_cycles
     
     x_des(i) = step_func(i);
     vtem_control.set_single_pressure(valveNum, x_des(i));
+    
+    wait(0.1);
 end
 
 vtem_control.set_single_pressure(valveNum, endPressure);
