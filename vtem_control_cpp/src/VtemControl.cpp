@@ -142,11 +142,39 @@ bool vtem_control::VtemControl::activate_pressure_regulation(int slot_idx = -1) 
     int des_valve_mode = 3;
     int des_app_control = 3;
     int des_valve_state = 2;
-    float timeout =  10; // [s] duration during which we wait for the pressure regulation to deactivate
+    float timeout = 20; // [s] duration during which we wait for the pressure regulation to deactivate
     float sampling_rate = 100; // frequency with which we check the currently activate valve mode
 
     if (slot_idx == -1) {
-        return set_all_motion_apps(des_valve_mode, des_app_control);
+        set_all_motion_apps(des_valve_mode, des_app_control);
+
+        int actual_valve_mode, valve_state;
+
+        int i = 0;
+        // wait to reach valve mode 3 (pressure regulation) and valve state 2 (e.g. running)
+        bool config_mismatch = true;
+        while (config_mismatch) {
+            if (i / sampling_rate > timeout) {
+                return false;
+            }
+
+            config_mismatch = false;
+            for (auto slot_idx = 0; slot_idx < (num_slots); slot_idx++) {
+                get_single_motion_app(slot_idx, actual_valve_mode, valve_state);
+                std::cout << "Activate pressure reguluation idx: " << i << " for slot: " << slot_idx << " actual_valve_mode: " << " valve_state: " << valve_state << std::endl;
+                
+                if (actual_valve_mode != des_valve_mode || valve_state != des_valve_state) {
+                    config_mismatch = true;
+                    break;
+                }
+            }
+
+            if (config_mismatch) {
+                i += 1;
+                std::this_thread::sleep_for(std::chrono::milliseconds(int(1/sampling_rate*1000)));
+            }
+        }
+        return true;
     } else {
         set_single_motion_app(slot_idx, des_valve_mode, des_app_control);
 
@@ -168,8 +196,6 @@ bool vtem_control::VtemControl::activate_pressure_regulation(int slot_idx = -1) 
             std::this_thread::sleep_for(std::chrono::milliseconds(int(1/sampling_rate*1000)));
         }
         return true;
-
-        return set_single_motion_app(slot_idx, 3, 3);
     }
 }
 
@@ -183,9 +209,43 @@ bool vtem_control::VtemControl::deactivate_pressure_regulation(int slot_idx = -1
 
     if (slot_idx == -1) {
         // Set valves to 0 bar (off).
-        // vtemControl.set_single_pressure(2*slot_idx, 0);
+        for (auto slot_idx = 0; slot_idx < (num_slots); slot_idx++) {
+            set_single_pressure(2*slot_idx, 0);
+            set_single_pressure(2*slot_idx + 1, 0);
+        }
 
-        return set_all_motion_apps(des_valve_mode, des_app_control);
+        // take some time to release pressure before shutting of the motion app
+        std::this_thread::sleep_for(std::chrono::milliseconds(int(exhaust_duration * 1000)));
+
+        set_all_motion_apps(des_valve_mode, des_app_control);
+
+        int actual_valve_mode, valve_state;
+
+        int i = 0;
+        // wait to reach valve mode 3 (pressure regulation) and valve state 2 (e.g. running)
+        bool config_mismatch = true;
+        while (config_mismatch) {
+            if (i / sampling_rate > timeout) {
+                return false;
+            }
+
+            config_mismatch = false;
+            for (auto slot_idx = 0; slot_idx < (num_slots); slot_idx++) {
+                get_single_motion_app(slot_idx, actual_valve_mode, valve_state);
+                std::cout << "Activate pressure reguluation idx: " << i << " for slot: " << slot_idx << " actual_valve_mode: " << actual_valve_mode << " valve_state: " << valve_state << std::endl;
+                
+                if (actual_valve_mode != des_valve_mode || valve_state != des_valve_state) {
+                    config_mismatch = true;
+                    break;
+                }
+            }
+
+            if (config_mismatch) {
+                i += 1;
+                std::this_thread::sleep_for(std::chrono::milliseconds(int(1/sampling_rate*1000)));
+            }
+        }
+        return true;
     } else {
         // Set valves to 0 bar (off).
         set_single_pressure(2*slot_idx, 0);
