@@ -7,7 +7,7 @@ vtem_control = VtemControl("192.168.4.3", 502);
 vtem_control.connect();
 
 % Acknowledge errors
-vtem_control.set_single_motion_app(0, 62, 1);
+vtem_control.set_all_motion_apps(62, 1);
 
 pause(5);
 
