@@ -1,0 +1,103 @@
+% close all; clear;
+
+% parameters
+valveIdx = 0; % test valves 0 to 15
+commandPressure = 450; % [mBar]
+endPressure = 0;
+
+vtem_control = VtemControl("192.168.4.3", 502);
+vtem_control.connect();
+
+% Acknowledge errors
+vtem_control.set_all_motion_apps(62, 1);
+
+pause(5);
+
+vtem_control.activate_pressure_regulation_all_slots();
+
+pause(20);
+
+%% parameters
+rp = 0.1; % distance between center of pressure force and the axis
+alpha_p = 100; % maps pressure to force. 1mbar = 100N/m2
+alpha = rp * alpha_p;% parameter to be assigned
+p_offset = 200; % preload pressure value in one chamber
+
+%% Trajectories
+trajectory_number = 1;
+nchambers = 4;
+
+if trajectory_number == 1
+    slope = 1000;
+    force_peak = 600; % [N]
+    up = 0:slope/force_peak:force_peak;
+    down = force_peak:-slope/force_peak:0;
+    f0 = [up, down];
+    f1 = zeros(1,length(f0));
+    x = actuate_pressures(alpha,f0,f1,p_offset,valveIdx,nchambers);
+    
+elseif trajectory_number == 2
+    slope = 1000;
+    force_peak = 450; % [N]
+    up = 0:slope/force_peak:force_peak;
+    down = force_peak:-slope/force_peak:0;
+    f0 = [up, down, -up, -down];
+    f1 = [up, up + force_peak, down + force_peak, down];
+    x = actuate_pressures(alpha,f0,f1,p_offset,valveIdx,nchambers);
+    
+elseif trajectory_number == 3
+    slope = 1000;
+    force_peak = 450; % [N]
+    up = 0:slope/force_peak:force_peak;
+    down = force_peak:-slope/force_peak:0;
+    f0 = [up, down, -up, -down, up, down, -up, -down];
+    f1 = [up, up + force_peak, down + force_peak, down, -up, -up - force_peak, -down - force_peak, -down];
+    x = actuate_pressures(alpha,f0,f1,p_offset,valveIdx,nchambers);
+end
+
+vtem_control.set_single_pressure(valveIdx, endPressure);
+
+% % 
+% % figure
+% % plot(t,x,t,x_des);
+
+
+function x = actuate_pressures(alpha,f0,f1,p_offset,valveIdx,nchambers)
+
+%% four chamber case
+if nchambers == 4
+    pp = 1 / alpha * [1/2 0; 0 1/2; -1/2 0; 0 -1/2] * [f0;f1] + p_offset;
+    p0 = pp(1,:) - min([zeros(1,length(pp));pp(1,:);pp(3,:)]);
+    p1 = pp(2,:) - min([zeros(1,length(pp));pp(2,:);pp(4,:)]);
+    p2 = pp(3,:) - min([zeros(1,length(pp));pp(1,:);pp(3,:)]);
+    p3 = pp(4,:) - min([zeros(1,length(pp));pp(2,:);pp(4,:)]);
+elseif nchambers == 3
+%% three chamber case
+    pp = 1 / alpha * [2/3 0; -1/3 1/sqrt(3); -1/3 -1/sqrt(3)] * [f0;f1] + p_offset;
+    p0 = pp(1,:) - min([zeros(1,length(pp));pp(1,:);pp(2,:);pp(3,:)]);
+    p1 = pp(2,:) - min([zeros(1,length(pp));pp(1,:);pp(2,:);pp(3,:)]);
+    p2 = pp(3,:) - min([zeros(1,length(pp));pp(1,:);pp(2,:);pp(3,:)]);
+end
+subplot(4,1,1); plot(p0); title('chamber 1 desired pressure values'); ylabel('pressure [mBar]'); xlabel('time steps');
+subplot(4,1,2); plot(p1); title('chamber 2 desired pressure values'); ylabel('pressure [mBar]'); xlabel('time steps');
+subplot(4,1,3); plot(p2); title('chamber 3 desired pressure values'); ylabel('pressure [mBar]'); xlabel('time steps');
+if nchambers == 4
+    subplot(4,1,4); plot(p3); title('chamber 4 desired pressure values'); ylabel('pressure [mBar]'); xlabel('time steps');
+end
+suptitle('trajectory 1 desired pressure values');
+figure; plot(f0,f1); xlabel('f0 [N]'), ylabel('f1 [N]'); title('forces in x and y');
+
+x = zeros(length(pp),1);
+for i=1:1:length(pp)
+    x(i) = vtem_control.get_single_pressure(valveIdx); % here you read value from chamber
+    
+    
+    vtem_control.set_single_pressure(valveIdx, p0(i)); % here you set pressure!
+    vtem_control.set_single_pressure(valveIdx + 1, p1(i));
+    vtem_control.set_single_pressure(valveIdx + 2, p2(i));
+    if nchambers == 4
+        vtem_control.set_single_pressure(valveIdx + 3, p3(i));
+    end
+    pause(0.1); % 10Hz
+end
+end
