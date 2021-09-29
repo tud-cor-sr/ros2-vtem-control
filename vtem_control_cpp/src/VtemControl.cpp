@@ -67,7 +67,7 @@ bool vtem_control::VtemControl::get_single_motion_app(int slot_idx, int &motion_
     const auto status = &input_status_buffer_[slot_idx]; // this should read two bytes containing the slot status information
     const auto addr = address_input_start + cpx_input_offset + 3*slot_idx;
     
-    if (modbus_read_registers(ctx_, addr, 1, status) == -1) {
+    if (modbus_read_registers(ctx_, addr, 1, (uint16_t *)status) == -1) {
         throw std::runtime_error("Failed to read slot status register.");
     }
 
@@ -102,9 +102,9 @@ bool vtem_control::VtemControl::set_single_motion_app(int slot_idx, int motion_a
 
     ensure_connection();
 
-    uint16_t command_first_byte = (app_control << 6) | motion_app_id;
-    uint16_t command_second_byte = 0;
-    uint16_t command = (command_second_byte << 8) | command_first_byte;
+    int16_t command_first_byte = (app_control << 6) | motion_app_id;
+    int16_t command_second_byte = 0;
+    int16_t command = (command_second_byte << 8) | command_first_byte;
     
     const auto addr = address_output_start + cpx_output_offset + 3*slot_idx;
     if (modbus_write_register(ctx_, addr, command) == -1) {
@@ -313,7 +313,7 @@ int vtem_control::VtemControl::get_single_pressure(const int valve_idx) {
     const auto dest = &input_value_buffer_[valve_idx];
     const auto addr = address_input_start + cpx_input_offset + 3*slot_idx + 1 + 1*slot_remain;
 
-    if (modbus_read_registers(ctx_, addr, 1, dest) == -1) {
+    if (modbus_read_registers(ctx_, addr, 1, (uint16_t *)dest) == -1) {
         throw std::runtime_error("Failed to read CPX modbus register.");
     }
 

@@ -51,8 +51,8 @@ namespace vtem_control {
 
         void ensure_motion_app(int slot_idx, int des_motion_app_id, int des_valve_state);
 
-        std::vector<uint16_t> input_status_buffer_;
-        std::vector<uint16_t> input_value_buffer_;
+        std::vector<int16_t> input_status_buffer_;
+        std::vector<int16_t> input_value_buffer_;
 
         modbus_t *ctx_;
 
