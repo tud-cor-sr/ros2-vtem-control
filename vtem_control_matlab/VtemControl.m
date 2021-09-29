@@ -36,7 +36,7 @@ classdef VtemControl < handle
          end
       end
       function [value, bits_str] = read_address(obj, addr)
-         value = read(obj.ctx_, 'holdingregs', addr, 1, 'uint16');
+         value = read(obj.ctx_, 'holdingregs', addr, 1, 'int16');
          bits = bitget(value, 8:-1:1);
          bits_str = num2str(bits);
          bits_str(isspace(bits_str)) = '';
@@ -48,7 +48,7 @@ classdef VtemControl < handle
          % (e.g. status, actual value 1, actual value 2)
          addr = obj.addr_input_start_ + obj.cpx_input_offset_ + 3*slotIdx;
          % this gives us an array containing two bytes
-         status = read(obj.ctx_, 'holdingregs', addr, 1, 'uint16');
+         status = read(obj.ctx_, 'holdingregs', addr, 1, 'int16');
          
 %          addr1 = obj.addr_input_start_ + obj.cpx_input_offset_ + 2*3*slotIdx
 %          byte1 = read(obj.ctx_, 'holdingregs', addr1, 1);
@@ -84,7 +84,7 @@ classdef VtemControl < handle
          command = bit2dec(command_bits);
          
          addr = obj.addr_output_start_ + obj.cpx_output_offset_ + 3*slotIdx;
-         write(obj.ctx_, 'holdingregs', addr, command, 'uint16');
+         write(obj.ctx_, 'holdingregs', addr, command, 'int16');
       end
       function set_all_motion_apps(obj, motion_app_id, app_control)
           for slotIdx = 0:1:(obj.num_slots_-1)
@@ -272,7 +272,7 @@ classdef VtemControl < handle
          obj.ensure_motion_app(slotIdx, 3, 2);
           
          addr = obj.addr_input_start_ + obj.cpx_input_offset_ + 3*slotIdx + 1 + slotRemain;
-         bytes = read(obj.ctx_, 'holdingregs', addr, 1, 'uint16');
+         bytes = read(obj.ctx_, 'holdingregs', addr, 1, 'int16');
 
          bits = bitget(bytes, 16:-1:1);
          value = bit2dec(bits);
@@ -285,7 +285,7 @@ classdef VtemControl < handle
          obj.ensure_motion_app(slotIdx, 3, 2);
           
          addr = obj.addr_output_start_ + obj.cpx_output_offset_ + 3*slotIdx + 1 + slotRemain;
-         write(obj.ctx_, 'holdingregs', addr, value, 'uint16');
+         write(obj.ctx_, 'holdingregs', addr, value, 'int16');
       end
       function pressures = get_all_pressures(obj)
           pressures = zeros(2*obj.num_slots_, 1);
