@@ -24,7 +24,7 @@ public:
     this->get_parameter("pub_freq", pub_freq_);
 
     // VTEM modbus network information
-    this->declare_parameter<std::string>("modbus_node", "192.168.1.101");
+    this->declare_parameter<std::string>("modbus_node", "192.168.4.3");
     this->declare_parameter<std::string>("modbus_service", "502");
     this->get_parameter("modbus_node", modbus_node_);
     this->get_parameter("modbus_service", modbus_service_);
