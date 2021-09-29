@@ -91,16 +91,33 @@ classdef VtemControl < handle
               obj.set_single_motion_app(slotIdx, motion_app_id, app_control);
           end
       end
-      function ensure_motion_app(obj, slotIdx, des_motion_app_id, des_valve_state)
+      function result = ensure_motion_app(obj, slotIdx, des_motion_app_id, des_valve_state, throw_exception)
+         if cellfun('isempty',throw_exception)
+            throw_exception = true;
+         end
+
          [motion_app_id, valve_state] = get_single_motion_app(obj, slotIdx);
           
          if motion_app_id ~= des_motion_app_id
-             throw(MException("VtemControl:ensure_motion_app", "Operation requires activating the suitable motion app."))
+             if throw_exception
+                throw(MException("VtemControl:ensure_motion_app", "Operation requires activating the suitable motion app."))
+             else
+                result = false;
+                return;
+             end
          end
          
          if valve_state ~= des_valve_state
-             throw(MException("VtemControl:ensure_motion_app", "Operation requires setting the desired valve state."))
+             if throw_exception
+                throw(MException("VtemControl:ensure_motion_app", "Operation requires setting the desired valve state."))
+             else
+                result = false;
+                return;
+             end
          end
+
+         result = true;
+         return;
       end
       function acknowledge_errors_single_slot(obj, slotIdx)
          obj.set_single_motion_app(slotIdx, 62, 1);
@@ -269,7 +286,11 @@ classdef VtemControl < handle
          
          [slotIdx, slotRemain] = VtemControl.get_slot_idx_from_valve_idx(valveIdx);
          
-         obj.ensure_motion_app(slotIdx, 3, 2);
+         if obj.ensure_motion_app(slotIdx, 3, 2, false) == false
+             % we return zero pressure if the pressure regulation app is not active
+            value = 0;
+            return;
+         end
           
          addr = obj.addr_input_start_ + obj.cpx_input_offset_ + 3*slotIdx + 1 + slotRemain;
          bytes = read(obj.ctx_, 'holdingregs', addr, 1, 'int16');
