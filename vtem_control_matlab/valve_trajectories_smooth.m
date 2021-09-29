@@ -26,11 +26,11 @@ alpha = rp * alpha_p;% parameter to be assigned
 p_offset = 150; % preload pressure value in one chamber
 
 %% Trajectories
-trajectory_number = 1;
+trajectory_number = 3;
 nchambers = 4;
 
 if trajectory_number == 1
-    slope = 400000; % 46 time steps instead of 38
+    slope = 600000; % 32 time steps instead of 38, around 10s traj
     force_peak = 3000; % [N] 
     up = 0:slope/force_peak:force_peak;
     down = force_peak:-slope/force_peak:0;
@@ -38,7 +38,7 @@ if trajectory_number == 1
     f1 = zeros(1,length(f0));
     
 elseif trajectory_number == 2
-    slope = 250000;
+    slope = 300000; %32 steps, 10s
     force_peak = 1500; % [N]
     up = 0:slope/force_peak:force_peak;
     down = force_peak:-slope/force_peak:0;
@@ -46,7 +46,7 @@ elseif trajectory_number == 2
     f1 = [up, up + force_peak, down + force_peak, down];
     
 elseif trajectory_number == 3
-    slope = 500000;
+    slope = 600000; %32 steps, 10s
     force_peak = 1500; % [N]
     up = 0:slope/force_peak:force_peak;
     down = force_peak:-slope/force_peak:0;
@@ -91,20 +91,26 @@ subplot(4,1,3); plot(p2); title('chamber 3 desired pressure values'); ylabel('pr
 if nchambers == 4
     subplot(4,1,4); plot(p3); title('chamber 4 desired pressure values'); ylabel('pressure [mBar]'); xlabel('time steps');
 end
+
 % suptitle('trajectory 1 desired pressure values');
 % figure; plot(f0,f1); xlabel('f0 [N]'), ylabel('f1 [N]'); title('forces in x and y');
 
 x = zeros(length(pp),16);
-tic
-vtem_control.set_all_pressures([p_offset/3*ones(4,1);zeros(12,1)]);%%% HERE YOU SHOULD SET THE OFFSET PRESSURE AND WAIT FOR IT TO BE REACHED
+
+vtem_control.set_all_pressures([round(1*p_offset/4)*ones(4,1);zeros(12,1)]);
 pause(0.3);
-vtem_control.set_all_pressures([2*p_offset/3*ones(4,1);zeros(12,1)]);
+vtem_control.set_all_pressures([round(2*p_offset/4)*ones(4,1);zeros(12,1)]);
 pause(0.3);
-vtem_control.set_all_pressures([p_offset*ones(4,1);zeros(12,1)]);
+vtem_control.set_all_pressures([round(3*p_offset/4)*ones(4,1);zeros(12,1)]);
+pause(0.3);
+vtem_control.set_all_pressures([4*p_offset/4*ones(4,1);zeros(12,1)]);
+
 %vtem_control.set_all_pressures(zeros(16,1));
-while vtem_control.get_single_pressure(valveIdx) < 97 && vtem_control.get_single_pressure(valveIdx+1) < 97 && vtem_control.get_single_pressure(valveIdx+2) < 97 && vtem_control.get_single_pressure(valveIdx+3) < 97
-    dip('not ready yet')
+while vtem_control.get_single_pressure(valveIdx) < 147 && vtem_control.get_single_pressure(valveIdx+1) < 147 && vtem_control.get_single_pressure(valveIdx+2) < 147 && vtem_control.get_single_pressure(valveIdx+3) < 147
+    disp('not ready yet')
 end
+pause(5);
+tic
 for i=1:1:length(pp)
     x(i,:) =  (vtem_control.get_all_pressures)';
     
@@ -118,19 +124,21 @@ for i=1:1:length(pp)
 end
 toc
 
-vtem_control.set_all_pressures([2*p_offset/3*ones(4,1);zeros(12,1)]);
+vtem_control.set_all_pressures([round(3*p_offset/4)*ones(4,1);zeros(12,1)]);
 pause(0.3);
-vtem_control.set_all_pressures([p_offset/3*ones(4,1);zeros(12,1)]);
+vtem_control.set_all_pressures([round(2*p_offset/4)*ones(4,1);zeros(12,1)]);
+pause(0.3);
+vtem_control.set_all_pressures([round(1*p_offset/4)*ones(4,1);zeros(12,1)]);
 pause(0.3);
 vtem_control.set_all_pressures(zeros(16,1));
 vtem_control.deactivate_pressure_regulation_all_slots;
 
 figure; 
-subplot(2,2,1); plot(x(1:end,1)); hold on; plot(p0'); legend('read values','desired values'); xlabel('time steps'); ylabel('pressures [mBar]');
-subplot(2,2,2); plot(x(1:end,2)); hold on; plot(p1'); legend('read values','desired values'); xlabel('time steps'); ylabel('pressures [mBar]');
-subplot(2,2,3); plot(x(1:end,3)); hold on; plot(p2'); legend('read values','desired values'); xlabel('time steps'); ylabel('pressures [mBar]');
-subplot(2,2,4); plot(x(1:end,4)); hold on; plot(p3'); legend('read values','desired values'); xlabel('time steps'); ylabel('pressures [mBar]');
-title('comparison between desired and actual pressure values');
+subplot(2,2,1); plot(x(1:end,1)); hold on; plot(p0'); legend('read values','desired values'); xlabel('time steps'); ylabel('pressures [mBar]'); title('chamber 1');
+subplot(2,2,2); plot(x(1:end,2)); hold on; plot(p1'); legend('read values','desired values'); xlabel('time steps'); ylabel('pressures [mBar]'); title('chamber 2');
+subplot(2,2,3); plot(x(1:end,3)); hold on; plot(p2'); legend('read values','desired values'); xlabel('time steps'); ylabel('pressures [mBar]'); title('chamber 3');
+subplot(2,2,4); plot(x(1:end,4)); hold on; plot(p3'); legend('read values','desired values'); xlabel('time steps'); ylabel('pressures [mBar]'); title('chamber 4');
+% title('comparison between desired and actual pressure values');
 
 % % x = zeros(1000,16);
 % % tic
