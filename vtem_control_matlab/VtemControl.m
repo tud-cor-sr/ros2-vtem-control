@@ -102,6 +102,16 @@ classdef VtemControl < handle
              throw(MException("VtemControl:ensure_motion_app", "Operation requires setting the desired valve state."))
          end
       end
+      function acknowledge_errors_single_slot(obj, slotIdx)
+         obj.set_single_motion_app(slotIdx, 62, 1);
+         % Wait for errors to be acknowledged
+         pause(0.5);
+      end
+      function acknowledge_errors_all_slots(obj)
+         obj.set_all_motion_apps(62, 1);
+         % Wait for errors to be acknowledged
+         pause(0.5);
+      end
       function activate_pressure_regulation_single_slot(obj, slotIdx)
          obj.set_single_motion_app(slotIdx, 3, 3);
       end

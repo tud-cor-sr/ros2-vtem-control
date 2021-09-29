@@ -1,15 +1,15 @@
 % parameters
-valveIdx = 0; % test valves 0 to 15
 commandPressure = 450; % [mBar]
 endPressure = 0;
+
+valveIdx = 0; % test valves 0 to 15
+[slotIdx, slotRemain] = VtemControl.get_slot_idx_from_valve_idx(valveIdx);
 
 vtem_control = VtemControl("192.168.4.3", 502);
 vtem_control.connect();
 
 % Acknowledge errors
-vtem_control.set_all_motion_apps(62, 1);
-
-pause(5);
+vtem_control.acknowledge_errors_single_slot(slotIdx);
 
 vtem_control.activate_pressure_regulation_all_slots();
 
