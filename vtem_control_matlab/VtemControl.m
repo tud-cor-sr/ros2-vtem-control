@@ -112,17 +112,157 @@ classdef VtemControl < handle
          % Wait for errors to be acknowledged
          pause(0.5);
       end
-      function activate_pressure_regulation_single_slot(obj, slotIdx)
-         obj.set_single_motion_app(slotIdx, 3, 3);
+      function result = activate_pressure_regulation_single_slot(obj, slotIdx)
+         des_valve_mode = 3;
+         des_app_control = 3;
+         des_valve_state = 2;
+         timeout = 20; % [s] duration during which we wait for the pressure regulation to deactivate
+         sampling_rate = 20; % frequency with which we check the currently activate valve mode
+         
+         obj.set_single_motion_app(slotIdx, des_valve_mode, des_app_control);
+
+         i = 0;
+         config_mismatch = true;
+         while config_mismatch
+            if i / sampling_rate > timeout
+                result = false;
+                return;
+            end
+
+            [actual_valve_mode, valve_state] = obj.get_single_motion_app(slotIdx);
+            
+            if actual_valve_mode == des_valve_mode && valve_state == des_valve_state
+                config_mismatch = false;
+            end
+
+            if config_mismatch
+                i = i + 1;
+                pause(1/sampling_rate);
+            end
+         end
+
+         result = true;
+         return;
       end
-      function deactivate_pressure_regulation_single_slot(obj, slotIdx)
-         obj.set_single_motion_app(slotIdx, 61, 0);
+      function result = deactivate_pressure_regulation_single_slot(obj, slotIdx)
+         des_valve_mode = 61;
+         des_app_control = 0;
+         des_valve_state = 1;
+         timeout = 10; % [s] duration during which we wait for the pressure regulation to deactivate
+         sampling_rate = 20; % frequency with which we check the currently activate valve mode
+         exhaust_duration = 1; % [s] duration to let valve exhaust before shutting off motion app
+
+         % Set valves to 0 bar (off).
+         obj.set_single_pressure(2*slotIdx, 0);
+         obj.set_single_pressure(2*slotIdx + 1, 0);
+
+         % take some time to release pressure before shutting of the motion app
+         wait(exhaust_duration);
+         
+         obj.set_single_motion_app(slotIdx, des_valve_mode, des_app_control);
+
+         i = 0;
+         config_mismatch = true;
+         while config_mismatch
+            if i / sampling_rate > timeout
+                result = false;
+                return;
+            end
+
+            [actual_valve_mode, valve_state] = obj.get_single_motion_app(slotIdx);
+            
+            if actual_valve_mode == des_valve_mode && valve_state == des_valve_state
+                config_mismatch = false;
+            end
+
+            if config_mismatch
+                i = i + 1;
+                pause(1/sampling_rate);
+            end
+         end
+
+         result = true;
+         return;
       end
-      function activate_pressure_regulation_all_slots(obj)
-         obj.set_all_motion_apps(3, 3);
+      function result = activate_pressure_regulation_all_slots(obj)
+         des_valve_mode = 3;
+         des_app_control = 3;
+         des_valve_state = 2;
+         timeout = 20; % [s] duration during which we wait for the pressure regulation to deactivate
+         sampling_rate = 20; % frequency with which we check the currently activate valve mode
+         
+         obj.set_all_motion_apps(des_valve_mode, des_app_control);
+
+         i = 0;
+         config_mismatch = true;
+         while config_mismatch
+            if i / sampling_rate > timeout
+                result = false;
+                return;
+            end
+
+            config_mismatch = false;
+            for slotIdx = 0:1:(obj.num_slots_-1)
+                [actual_valve_mode, valve_state] = obj.get_single_motion_app(slotIdx);
+                
+                if actual_valve_mode ~= des_valve_mode || valve_state ~= des_valve_state
+                    config_mismatch = true;
+                end
+            end
+
+            if config_mismatch
+                i = i + 1;
+                pause(1 / sampling_rate);
+            end
+         end
+
+         result = true;
+         return;
       end
-      function deactivate_pressure_regulation_all_slots(obj)
-         obj.set_all_motion_apps(61, 0);
+      function result = deactivate_pressure_regulation_all_slots(obj)
+         des_valve_mode = 61;
+         des_app_control = 0;
+         des_valve_state = 1;
+         timeout = 10; % [s] duration during which we wait for the pressure regulation to deactivate
+         sampling_rate = 20; % frequency with which we check the currently activate valve mode
+         exhaust_duration = 1; % [s] duration to let valve exhaust before shutting off motion app
+
+         % Set valves to 0 bar (off).
+         for slotIdx = 0:1:(obj.num_slots_-1)
+            obj.set_single_pressure(2*slotIdx, 0);
+            obj.set_single_pressure(2*slotIdx + 1, 0);
+         end
+
+         % take some time to release pressure before shutting of the motion app
+         wait(exhaust_duration);
+         
+         obj.set_all_motion_apps(des_valve_mode, des_app_control);
+
+         i = 0;
+         config_mismatch = true;
+         while config_mismatch
+            if i / sampling_rate > timeout
+                result = false;
+                return;
+            end
+
+            config_mismatch = false;
+            for slotIdx = 0:1:(obj.num_slots_-1)
+                [actual_valve_mode, valve_state] = obj.get_single_motion_app(slotIdx);
+                
+                if actual_valve_mode ~= des_valve_mode || valve_state ~= des_valve_state
+                    config_mismatch = true;
+                end
+            end
+
+            if config_mismatch
+                i = i + 1;
+                pause(1 / sampling_rate);
+            end
+         end
+
+         result = true;
+         return;
       end
       function value = get_single_pressure(obj, valveIdx)
          obj.ensure_connection(); 

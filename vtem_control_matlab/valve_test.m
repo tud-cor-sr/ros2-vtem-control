@@ -11,9 +11,9 @@ vtem_control.connect();
 % Acknowledge errors
 vtem_control.acknowledge_errors_single_slot(slotIdx);
 
-vtem_control.activate_pressure_regulation_all_slots();
-
-pause(20);
+if vtem_control.activate_pressure_regulation_single_slot(slotIdx) == false
+    throw(MException("valve_test:activate_pressure_regulation_single_slot", "Failed to activate pressure regulation."))
+end
 
 num_cycles = 100;
 t = 1:1:num_cycles;
@@ -28,7 +28,9 @@ for i=1:1:num_cycles
     pause(0.1);
 end
 
-vtem_control.set_single_pressure(valveIdx, endPressure);
+if vtem_control.deactivate_pressure_regulation_single_slot(slotIdx) == false
+    throw(MException("valve_test:deactivate_pressure_regulation_single_slot", "Failed to deactivate pressure regulation."))
+end
 
 figure
 plot(t,x,t,x_des);
