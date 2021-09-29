@@ -30,17 +30,17 @@ namespace vtem_control {
         bool get_single_motion_app(int slot_idx, int &motion_app_id, int &valve_state);
         bool get_single_motion_app_adjusted(int slot_idx);
 
-        bool set_single_motion_app(int slot_idx, int motion_app_id, int app_control);
-        bool set_all_motion_apps(int motion_app_id, int app_control);
+        bool set_single_motion_app(int slot_idx, int motion_app_id = 61, int app_control = 0);
+        bool set_all_motion_apps(int motion_app_id = 61, int app_control = 0);
 
-        bool acknowledge_errors(int slot_idx);
+        bool acknowledge_errors(int slot_idx = -1);
 
-        bool activate_pressure_regulation(int slot_idx);
-        bool deactivate_pressure_regulation(int slot_idx);
+        bool activate_pressure_regulation(int slot_idx = -1);
+        bool deactivate_pressure_regulation(int slot_idx = -1);
 
         int get_single_pressure(int valve_idx);
 
-        void set_single_pressure(int valve_idx, int pressure);
+        void set_single_pressure(int valve_idx, int pressure = 0);
 
         void get_all_pressures(std::vector<int> *output);
 
