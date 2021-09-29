@@ -11,7 +11,7 @@ namespace vtem_control {
      */
     class VtemControl {
     public:
-        explicit VtemControl(const char *node, const char *service);
+        explicit VtemControl(const char *node, const char *service, int num_valves = 16);
 
         ~VtemControl();
 
@@ -46,10 +46,13 @@ namespace vtem_control {
 
         void set_all_pressures(const std::vector<int> &pressures);
 
+        int num_valves_;
+        int num_slots_;
+
     private:
         bool ensure_connection() const;
 
-        bool ensure_motion_app(int slot_idx, int des_motion_app_id, int des_valve_state, bool throw_exception);
+        bool ensure_motion_app(int slot_idx, int des_motion_app_id, int des_valve_state, bool throw_exception = true);
 
         std::vector<int16_t> input_status_buffer_;
         std::vector<int16_t> input_value_buffer_;

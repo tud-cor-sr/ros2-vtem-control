@@ -2,6 +2,7 @@
 #include <stdexcept>
 
 #include "rclcpp/rclcpp.hpp"
+#include "rcpputils/asserts.hpp"
 #include "VtemControl.hpp"
 #include "vtem_control_msgs/msg/fluid_pressures.hpp"
 using std::placeholders::_1;
@@ -24,11 +25,15 @@ public:
     this->get_parameter("modbus_node", modbus_node_);
     this->get_parameter("modbus_service", modbus_service_);
 
+    // VTEM valve configuration params
+    this->declare_parameter<int>("num_valves", 16);
+    this->get_parameter("num_valves", num_valves_);
+
     subscription_ = this->create_subscription<vtem_control_msgs::msg::FluidPressures>(
       vtem_input_pressures_topic_.c_str(), 10, std::bind(&InputPressuresSubscriber::topic_callback, this, _1));
     
     // Create VtemControl object
-    vtem_control::VtemControl vtemControl_(modbus_node_.c_str(), modbus_service_.c_str());
+    vtem_control::VtemControl vtemControl_(modbus_node_.c_str(), modbus_service_.c_str(), num_valves_);
 
     // Connect to VTEM
     if (!vtemControl_.connect()) {
@@ -36,12 +41,12 @@ public:
     }
 
     // Set motion app for all valves to 03 (proportional pressure regulation)
-    if (!vtemControl_.activate_pressure_regulation(-1)) {
+    if (!vtemControl_.activate_pressure_regulation()) {
       throw std::invalid_argument("Failed to activate pressure regulation!");
     }
   }
   ~InputPressuresSubscriber() {
-    vtemControl_.deactivate_pressure_regulation(-1);
+    vtemControl_.deactivate_pressure_regulation();
     vtemControl_.disconnect();
   }
 
@@ -49,6 +54,10 @@ private:
   void topic_callback(const vtem_control_msgs::msg::FluidPressures::SharedPtr msg)
   {
     RCLCPP_INFO(this->get_logger(), "I received msg with pressure[0]: %d mBar", (int) (msg->data[0].fluid_pressure/100));
+
+    // assert the num of valves configured to be equal to the number of commanded pressures
+    rcpputils::require_true(num_valves_ == (int) msg->data.size());
+
     std::vector<int> input_pressures_mbar(msg->data.size(), 0);
     int idx = 0;
     for (auto it = msg->data.begin(); it != msg->data.end(); ++it) {
@@ -63,6 +72,7 @@ private:
   std::string vtem_input_pressures_topic_;
   std::string modbus_node_;
   std::string modbus_service_;
+  int num_valves_;
 };
 
 int main(int argc, char * argv[])

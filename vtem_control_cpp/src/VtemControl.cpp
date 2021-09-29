@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+#include <math.h>
 #include <stdexcept>
 #include <thread>
 
@@ -15,17 +16,20 @@ namespace {
     const int address_output_start = 40001;
     const int cpx_input_offset = 3;
     const int cpx_output_offset = 2;
-    const int max_num_slots = 8;
 }
 
-vtem_control::VtemControl::VtemControl(const char *node, const char *service) {
+vtem_control::VtemControl::VtemControl(const char *node, const char *service, int num_valves) {
     // Not connected.
     connected_ = false;
 
+     // num_valves
+    num_valves_ = num_valves;
+    num_slots_ = (int) ceil(num_valves / 2.);
+
     // Resize buffer space.
     // Input buffer for each valve is of the format (actual, setpoint, diagnostic).
-    input_status_buffer_.resize(2 * num_slots);
-    input_value_buffer_.resize(2 * 2 * num_slots);
+    input_status_buffer_.resize(num_valves_);
+    input_value_buffer_.resize(2 * num_valves_);
 
     // Create Modbus context.
     ctx_ = modbus_new_tcp_pi(node, service);
@@ -115,7 +119,7 @@ bool vtem_control::VtemControl::set_single_motion_app(int slot_idx, int motion_a
 }
 
 bool vtem_control::VtemControl::set_all_motion_apps(int motion_app_id, int app_control) {
-    for (auto slot_idx = 0; slot_idx < (max_num_slots); slot_idx++) {
+    for (auto slot_idx = 0; slot_idx < (num_slots_); slot_idx++) {
         if (!set_single_motion_app(slot_idx, motion_app_id, app_control)) {
             return false;
         }
@@ -146,7 +150,15 @@ bool vtem_control::VtemControl::activate_pressure_regulation(int slot_idx) {
     float sampling_rate = 100; // frequency with which we check the currently activate valve mode
 
     if (slot_idx == -1) {
-        set_all_motion_apps(des_valve_mode, des_app_control);
+        for (auto slot_idx = 0; slot_idx < num_slots_; slot_idx++) {
+            // potentially only activate last slot partly
+            if (slot_idx == (num_slots_ - 1) && num_valves_ < 2*num_slots_) {
+                // only activate the first valve
+                set_single_motion_app(slot_idx, des_valve_mode, 2);
+            } else {
+                set_single_motion_app(slot_idx, des_valve_mode, des_app_control);
+            }
+        }
 
         int actual_valve_mode, valve_state;
 
@@ -159,7 +171,7 @@ bool vtem_control::VtemControl::activate_pressure_regulation(int slot_idx) {
             }
 
             config_mismatch = false;
-            for (auto slot_idx = 0; slot_idx < (max_num_slots); slot_idx++) {
+            for (auto slot_idx = 0; slot_idx < (num_slots_); slot_idx++) {
                 get_single_motion_app(slot_idx, actual_valve_mode, valve_state);
 
                 // std::cout << "Activate pressure reguluation idx: " << i << " for slot: " << slot_idx << " actual_valve_mode: " << actual_valve_mode << " valve_state: " << valve_state << std::endl;
@@ -210,7 +222,7 @@ bool vtem_control::VtemControl::deactivate_pressure_regulation(int slot_idx) {
 
     if (slot_idx == -1) {
         // Set valves to 0 bar (off).
-        for (auto slot_idx = 0; slot_idx < (max_num_slots); slot_idx++) {
+        for (auto slot_idx = 0; slot_idx < (num_slots_); slot_idx++) {
             set_single_pressure(2*slot_idx, 0);
             set_single_pressure(2*slot_idx + 1, 0);
         }
@@ -231,7 +243,7 @@ bool vtem_control::VtemControl::deactivate_pressure_regulation(int slot_idx) {
             }
 
             config_mismatch = false;
-            for (auto slot_idx = 0; slot_idx < (max_num_slots); slot_idx++) {
+            for (auto slot_idx = 0; slot_idx < (num_slots_); slot_idx++) {
                 get_single_motion_app(slot_idx, actual_valve_mode, valve_state);
 
                 // std::cout << "Deactivate pressure reguluation idx: " << i << " for slot: " << slot_idx << " actual_valve_mode: " << actual_valve_mode << " valve_state: " << valve_state << std::endl;
@@ -353,7 +365,7 @@ void vtem_control::VtemControl::set_single_pressure(const int valve_idx, const i
 void vtem_control::VtemControl::get_all_pressures(std::vector<int> *output) {
     ensure_connection();
 
-    for (auto valve_idx = 0; valve_idx < 2*max_num_slots; valve_idx++) {
+    for (auto valve_idx = 0; valve_idx < num_valves_; valve_idx++) {
         output->at(valve_idx) = get_single_pressure(valve_idx);
     }
 }
@@ -361,7 +373,7 @@ void vtem_control::VtemControl::get_all_pressures(std::vector<int> *output) {
 void vtem_control::VtemControl::set_all_pressures(const std::vector<int> &pressures) {
     ensure_connection();
 
-    for (auto valve_idx = 0; valve_idx < 2*max_num_slots; valve_idx++) {
+    for (auto valve_idx = 0; valve_idx < num_valves_; valve_idx++) {
         set_single_pressure(valve_idx, pressures[valve_idx]);
     }
 }

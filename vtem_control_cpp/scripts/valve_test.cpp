@@ -34,7 +34,7 @@ int main() {
     }
 
     // acknowledge errors for all slots
-    vtemControl.acknowledge_errors(-1);
+    vtemControl.acknowledge_errors();
 
     // Set motion app for all valves to 03 (proportional pressure regulation)
     if (!vtemControl.activate_pressure_regulation(slotIdx)) {

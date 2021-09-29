@@ -29,11 +29,15 @@ public:
     this->get_parameter("modbus_node", modbus_node_);
     this->get_parameter("modbus_service", modbus_service_);
 
+    // VTEM valve configuration params
+    this->declare_parameter<int>("num_valves", 16);
+    this->get_parameter("num_valves", num_valves_);
+
     publisher_ = this->create_publisher<vtem_control_msgs::msg::FluidPressures>(vtem_output_pressures_topic_.c_str(), 10);
     timer_ = this->create_wall_timer(std::chrono::microseconds((int) (1000000 / pub_freq_)), std::bind(&OutputPressuresPub::timer_callback, this));
     
     // Create VtemControl object
-    vtem_control::VtemControl vtemControl_(modbus_node_.c_str(), modbus_service_.c_str());
+    vtem_control::VtemControl vtemControl_(modbus_node_.c_str(), modbus_service_.c_str(), num_valves_);
 
     // Connect to VTEM
     if (!vtemControl_.connect()) {
@@ -74,6 +78,7 @@ private:
   float pub_freq_;
   std::string modbus_node_;
   std::string modbus_service_;
+  int num_valves_;
 };
 
 int main(int argc, char * argv[])
