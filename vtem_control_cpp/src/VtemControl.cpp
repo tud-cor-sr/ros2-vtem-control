@@ -278,24 +278,35 @@ bool vtem_control::VtemControl::deactivate_pressure_regulation(int slot_idx = -1
     }
 }
 
-void vtem_control::VtemControl::ensure_connection() const {
+bool vtem_control::VtemControl::ensure_connection() const {
     if (!connected_) {
         throw std::runtime_error("Operation requires a connection.");
     }
+    return true;
 }
 
-void vtem_control::VtemControl::ensure_motion_app(int slot_idx, int des_motion_app_id, int des_valve_state) {
+bool vtem_control::VtemControl::ensure_motion_app(int slot_idx, int des_motion_app_id, int des_valve_state, bool throw_exception = true) {
     int motion_app_id, valve_state;
 
     get_single_motion_app(slot_idx, motion_app_id, valve_state);
 
     if (motion_app_id != des_motion_app_id) {
-        throw std::runtime_error("Operation requires activating the suitable motion app");
+        if (throw_exception){
+            throw std::runtime_error("Operation requires activating the suitable motion app");
+        } else {
+            return false;
+        }
     }
 
     if (valve_state != des_valve_state) {
-        throw std::runtime_error("Operation requires setting the desired valve state");
+        if (throw_exception){
+            throw std::runtime_error("Operation requires setting the desired valve state");
+        } else {
+            return false;
+        }
     }
+
+    return true;
 }
 
 int vtem_control::VtemControl::get_slot_idx_from_valve_idx(const int valve_idx) const {
@@ -308,7 +319,12 @@ int vtem_control::VtemControl::get_single_pressure(const int valve_idx) {
 
     int slot_idx = get_slot_idx_from_valve_idx(valve_idx);
     int slot_remain = valve_idx - 2*slot_idx; // either 0 or 1 for valve in slot
-    ensure_motion_app(slot_idx, 3, 2); // motion app pressure regulation with valve state "running"
+    
+    // motion app pressure regulation with valve state "running"
+    if (!ensure_motion_app(slot_idx, 3, 2, false)){
+        // we return zero pressure if the pressure regulation app is not active
+        return 0;
+    }
 
     const auto dest = &input_value_buffer_[valve_idx];
     const auto addr = address_input_start + cpx_input_offset + 3*slot_idx + 1 + 1*slot_remain;
@@ -338,8 +354,7 @@ void vtem_control::VtemControl::get_all_pressures(std::vector<int> *output) {
     ensure_connection();
 
     for (auto valve_idx = 0; valve_idx < 2*num_slots; valve_idx++) {
-        get_single_pressure(valve_idx);
-        output->at(valve_idx) = input_value_buffer_[valve_idx];
+        output->at(valve_idx) = get_single_pressure(valve_idx);
     }
 }
 

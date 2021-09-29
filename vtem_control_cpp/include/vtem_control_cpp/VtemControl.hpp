@@ -47,9 +47,9 @@ namespace vtem_control {
         void set_all_pressures(const std::vector<int> &pressures);
 
     private:
-        void ensure_connection() const;
+        bool ensure_connection() const;
 
-        void ensure_motion_app(int slot_idx, int des_motion_app_id, int des_valve_state);
+        bool ensure_motion_app(int slot_idx, int des_motion_app_id, int des_valve_state, bool throw_exception);
 
         std::vector<int16_t> input_status_buffer_;
         std::vector<int16_t> input_value_buffer_;
