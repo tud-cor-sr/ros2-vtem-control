@@ -10,8 +10,6 @@ using std::placeholders::_1;
 class InputPressuresSubscriber : public rclcpp::Node
 {
 public:
-  vtem_control::VtemControl vtemControl_;
-
   InputPressuresSubscriber()
   : Node("input_pressures_sub")
   {
@@ -33,29 +31,34 @@ public:
       vtem_input_pressures_topic_.c_str(), 10, std::bind(&InputPressuresSubscriber::topic_callback, this, _1));
     
     // Create VtemControl object
-    vtem_control::VtemControl vtemControl_(modbus_node_.c_str(), modbus_service_.c_str(), num_valves_);
+    this->vtemControl_ = std::unique_ptr<vtem_control::VtemControl>(new vtem_control::VtemControl(modbus_node_.c_str(), modbus_service_.c_str(), num_valves_));
 
     // Connect to VTEM
-    if (!vtemControl_.connect()) {
+    RCLCPP_INFO(this->get_logger(), "Connecting to VTEM now via Modbus...");
+    if (!this->vtemControl_->connect()) {
       throw std::invalid_argument("Failed to connect to VTEM!");
     }
+    RCLCPP_INFO(this->get_logger(), "Connected to VTEM!");
 
     // Set motion app for all valves to 03 (proportional pressure regulation)
     RCLCPP_INFO(this->get_logger(), "Activating pressure regulation now...");
-    if (!vtemControl_.activate_pressure_regulation()) {
+    if (!this->vtemControl_->activate_pressure_regulation()) {
       throw std::invalid_argument("Failed to activate pressure regulation!");
     }
+    RCLCPP_INFO(this->get_logger(), "Pressure regulation is activated!");
   }
   ~InputPressuresSubscriber() {
     RCLCPP_INFO(this->get_logger(), "Deactivating pressure regulation now...");
-    vtemControl_.deactivate_pressure_regulation();
-    vtemControl_.disconnect();
+    this->vtemControl_->deactivate_pressure_regulation();
+    this->vtemControl_->disconnect();
+    RCLCPP_INFO(this->get_logger(), "Pressure regulation is deactivated!");
   }
 
+  std::unique_ptr<vtem_control::VtemControl> vtemControl_;
 private:
   void topic_callback(const vtem_control_msgs::msg::FluidPressures::SharedPtr msg)
   {
-    RCLCPP_INFO(this->get_logger(), "I received msg with pressure[0]: %d mBar", (int) (msg->data[0].fluid_pressure/100));
+    RCLCPP_INFO(this->get_logger(), "I received msg with commanded pressure[0]: %d mBar", (int) (msg->data[0].fluid_pressure/100));
 
     // assert the num of valves configured to be equal to the number of commanded pressures
     rcpputils::require_true(num_valves_ == (int) msg->data.size());
@@ -67,7 +70,7 @@ private:
       input_pressures_mbar[idx] = (int) fluid_pressure_msg.fluid_pressure / 100;
       idx += 1;
     }
-    vtemControl_.set_all_pressures(input_pressures_mbar);
+    vtemControl_->set_all_pressures(input_pressures_mbar);
   }
   rclcpp::Subscription<vtem_control_msgs::msg::FluidPressures>::SharedPtr subscription_;
 

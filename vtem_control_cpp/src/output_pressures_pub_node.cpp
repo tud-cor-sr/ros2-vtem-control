@@ -10,8 +10,6 @@ using namespace std::chrono_literals;
 class OutputPressuresPub : public rclcpp::Node
 {
 public:
-  vtem_control::VtemControl vtemControl_;
-
   OutputPressuresPub()
   : Node("output_pressures_pub")
   {
@@ -37,22 +35,23 @@ public:
     timer_ = this->create_wall_timer(std::chrono::microseconds((int) (1000000 / pub_freq_)), std::bind(&OutputPressuresPub::timer_callback, this));
     
     // Create VtemControl object
-    vtem_control::VtemControl vtemControl_(modbus_node_.c_str(), modbus_service_.c_str(), num_valves_);
+    this->vtemControl_ = std::unique_ptr<vtem_control::VtemControl>(new vtem_control::VtemControl(modbus_node_.c_str(), modbus_service_.c_str(), num_valves_));
 
     // Connect to VTEM
-    if (!vtemControl_.connect()) {
+    if (!vtemControl_->connect()) {
       throw std::invalid_argument("Failed to connect to VTEM!");
     }
   }
   ~OutputPressuresPub() {
-    vtemControl_.disconnect();
+    vtemControl_->disconnect();
   }
 
+  std::unique_ptr<vtem_control::VtemControl> vtemControl_;
 private:
   void timer_callback()
   {
-    std::vector<int> output_pressures_mbar;
-    vtemControl_.get_all_pressures(&output_pressures_mbar);
+    std::vector<int> output_pressures_mbar(num_valves_);
+    vtemControl_->get_all_pressures(&output_pressures_mbar);
 
     auto msg = vtem_control_msgs::msg::FluidPressures();
     msg.header.stamp = OutputPressuresPub::get_clock()->now();
@@ -69,6 +68,8 @@ private:
     msg.data = fluid_pressure_msgs;
 
     publisher_->publish(msg);
+
+    RCLCPP_INFO(this->get_logger(), "I published msg with actual pressure[0]: %d mBar", (int) (msg.data[0].fluid_pressure/100));
   }
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<vtem_control_msgs::msg::FluidPressures>::SharedPtr publisher_;
