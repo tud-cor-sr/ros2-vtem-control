@@ -11,9 +11,9 @@ class VtemControlPublisher(Node):
     def __init__(self):
         super().__init__('vtem_control_publisher')
 
-        self.declare_parameter('vtem_input_pressures_topic', 'vtem_control/input_pressures')
+        self.declare_parameter('input_pressures_topic', 'input_pressures')
 
-        vtem_input_pressures_topic = self.get_parameter('vtem_input_pressures_topic').get_parameter_value().string_value
+        vtem_input_pressures_topic = self.get_parameter('input_pressures_topic').get_parameter_value().string_value
         self.publisher_ = self.create_publisher(FluidPressures, vtem_input_pressures_topic, 10)
         timer_period = 0.1  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
