@@ -19,11 +19,14 @@ num_cycles = 100;
 t = 1:1:num_cycles;
 x = zeros(num_cycles, 1);
 x_des = zeros(num_cycles, 1);
+% tic
 for i=1:1:num_cycles
     x(i) = vtem_control.get_single_pressure(valveIdx);
     
     x_des(i) = step_func(i);
     vtem_control.set_single_pressure(valveIdx, x_des(i));
+
+    % toc
     
     pause(0.1);
 end
