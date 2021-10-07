@@ -65,6 +65,10 @@ bool vtem_control::VtemControl::disconnect() {
     return false;
 }
 
+bool vtem_control::VtemControl::is_connected() {
+    return connected_;
+}
+
 bool vtem_control::VtemControl::get_single_motion_app(int slot_idx, int &motion_app_id, int &valve_state) {
     ensure_connection();
 

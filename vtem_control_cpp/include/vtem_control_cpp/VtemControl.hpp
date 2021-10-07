@@ -22,8 +22,8 @@ namespace vtem_control {
         VtemControl() = default;
 
         bool connect();
-
         bool disconnect();
+        bool is_connected();
 
         int get_slot_idx_from_valve_idx(int valve_idx) const;
 
