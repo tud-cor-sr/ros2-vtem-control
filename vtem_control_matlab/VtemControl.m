@@ -52,23 +52,23 @@ classdef VtemControl < handle
          
 %          addr1 = obj.addr_input_start_ + obj.cpx_input_offset_ + 2*3*slotIdx
 %          byte1 = read(obj.ctx_, 'holdingregs', addr1, 1);
-%          byte1_bits = bitget(byte1, 8:-1:1)
+%          byte1_bits = bitget(byte1, 8:-1:1, 'int16')
 %          addr2 = obj.addr_input_start_ + obj.cpx_input_offset_ + 2*3*slotIdx + 1
 %          byte2 = read(obj.ctx_, 'holdingregs', addr2, 1);
-%          byte2_bits = bitget(byte2, 8:-1:1)
+%          byte2_bits = bitget(byte2, 8:-1:1, 'int16')
          
-%          byte1_bits = bitget(status(2), 8:-1:1)
-%          byte2_bits = bitget(status(1), 8:-1:1)
+%          byte1_bits = bitget(status(2), 8:-1:1, 'int16')
+%          byte2_bits = bitget(status(1), 8:-1:1, 'int16')
          
          % somehow, the second byte seems to be stored in the first element
          % of the array and vice-versa
-         motion_app_id_bits = bitget(status, 6:-1:1);
+         motion_app_id_bits = bitget(status, 6:-1:1, 'int16');
          motion_app_id = bit2dec(motion_app_id_bits);
          
-         valve_state_bits = bitget(status, 8:-1:7);
+         valve_state_bits = bitget(status, 8:-1:7, 'int16');
          valve_state = bit2dec(valve_state_bits);
          
-         app_state_bits = bitget(status, 16:-1:9);
+         app_state_bits = bitget(status, 16:-1:9, 'int16');
          app_state = bit2dec(app_state_bits);
       end
       function set_single_motion_app(obj, slotIdx, motion_app_id, app_control)
@@ -76,9 +76,9 @@ classdef VtemControl < handle
           
          app_option = 0;
          
-         motion_app_id_bin = bitget(motion_app_id, 6:-1:1);
-         app_control_bin = bitget(app_control, 2:-1:1);
-         app_option_bin = bitget(app_option, 8:-1:1);
+         motion_app_id_bin = bitget(motion_app_id, 6:-1:1, 'int16');
+         app_control_bin = bitget(app_control, 2:-1:1, 'int16');
+         app_option_bin = bitget(app_option, 8:-1:1, 'int16');
          
          command_bits = [app_option_bin app_control_bin motion_app_id_bin];
          command = bit2dec(command_bits);
@@ -295,7 +295,7 @@ classdef VtemControl < handle
          addr = obj.addr_input_start_ + obj.cpx_input_offset_ + 3*slotIdx + 1 + slotRemain;
          bytes = read(obj.ctx_, 'holdingregs', addr, 1, 'int16');
 
-         bits = bitget(bytes, 16:-1:1);
+         bits = bitget(bytes, 16:-1:1, 'int16');
          value = bit2dec(bits);
       end
       function set_single_pressure(obj, valveIdx, value)
