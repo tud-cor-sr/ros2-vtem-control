@@ -40,6 +40,10 @@ public:
     }
     RCLCPP_INFO(this->get_logger(), "Connected to VTEM!");
 
+    // acknowledge errors for all slots
+    RCLCPP_INFO(this->get_logger(), "Acknowledging all errors!");
+    this->vtemControl_->acknowledge_errors();
+
     // Set motion app for all valves to 03 (proportional pressure regulation)
     RCLCPP_INFO(this->get_logger(), "Activating pressure regulation now...");
     if (!this->vtemControl_->activate_pressure_regulation()) {
