@@ -69,7 +69,7 @@ private:
 
     publisher_->publish(msg);
 
-    RCLCPP_INFO(this->get_logger(), "I published msg with actual pressure[0]: %d mBar", (int) (msg.data[0].fluid_pressure/100));
+    RCLCPP_INFO(this->get_logger(), "I published FluidPressures with actual pressure [0]: %d mBar", (int) (msg.data[0].fluid_pressure/100));
   }
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<vtem_control_msgs::msg::FluidPressures>::SharedPtr publisher_;

@@ -62,7 +62,7 @@ public:
 private:
   void topic_callback(const vtem_control_msgs::msg::FluidPressures::SharedPtr msg)
   {
-    RCLCPP_INFO(this->get_logger(), "I received msg with commanded pressure[0]: %d mBar", (int) (msg->data[0].fluid_pressure/100));
+    RCLCPP_INFO(this->get_logger(), "I received FluidPressures with commanded pressure [0]: %d mBar", (int) (msg->data[0].fluid_pressure/100));
 
     // assert the num of valves configured to be equal to the number of commanded pressures
     rcpputils::require_true(num_valves_ == (int) msg->data.size());
