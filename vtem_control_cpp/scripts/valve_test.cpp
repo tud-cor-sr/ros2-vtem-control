@@ -1,5 +1,6 @@
 #include "VtemControl.hpp"
 #include <chrono>
+#include <ctime>
 #include <iostream>
 #include <thread>
 
@@ -48,6 +49,9 @@ int main() {
     int cycles = 1000;
     std::vector<double> x(cycles), actualPressures(cycles),
             commandedPressures(cycles); // for logging pressure profile
+
+    time_t tstart, tend;
+    tstart = time(0);
     for (int i = 0; i < cycles; i++) {
         // Wait 10 ms.
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -68,6 +72,9 @@ int main() {
                       << " mBar\tcommanded pressure: " << commandedPressure << " mBar" << std::endl;
         }
     }
+
+    tend = time(0);
+    std::cout << "Average computational duration of cycle: " << 1000*difftime(tend, tstart) / ((double) (cycles)) << " ms" << std::endl;
 
     if (!vtemControl.deactivate_pressure_regulation(slotIdx)) {
         std::cout << "Failed to deactivate pressure regulation." << std::endl;
