@@ -92,7 +92,7 @@ classdef VtemControl < handle
           end
       end
       function result = ensure_motion_app(obj, slotIdx, des_motion_app_id, des_valve_state, throw_exception)
-         if cellfun('isempty',throw_exception)
+         if nargin < 5
             throw_exception = true;
          end
 
@@ -174,7 +174,7 @@ classdef VtemControl < handle
          obj.set_single_pressure(2*slotIdx + 1, 0);
 
          % take some time to release pressure before shutting of the motion app
-         wait(exhaust_duration);
+         pause(exhaust_duration);
          
          obj.set_single_motion_app(slotIdx, des_valve_mode, des_app_control);
 
