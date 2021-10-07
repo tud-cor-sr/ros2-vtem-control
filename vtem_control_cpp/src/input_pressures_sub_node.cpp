@@ -41,11 +41,13 @@ public:
     }
 
     // Set motion app for all valves to 03 (proportional pressure regulation)
+    RCLCPP_INFO(this->get_logger(), "Activating pressure regulation now...");
     if (!vtemControl_.activate_pressure_regulation()) {
       throw std::invalid_argument("Failed to activate pressure regulation!");
     }
   }
   ~InputPressuresSubscriber() {
+    RCLCPP_INFO(this->get_logger(), "Deactivating pressure regulation now...");
     vtemControl_.deactivate_pressure_regulation();
     vtemControl_.disconnect();
   }
