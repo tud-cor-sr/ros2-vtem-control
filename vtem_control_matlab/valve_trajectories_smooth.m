@@ -29,6 +29,7 @@ p_offset = 150; % preload pressure value in one chamber
 trajectory_number = 3;
 nchambers = 4;
 
+% Trajectory 1: 1D bending
 if trajectory_number == 1
     slope = 600000; % 32 time steps instead of 38, around 10s traj
     force_peak = 3000; % [N] 
@@ -36,7 +37,8 @@ if trajectory_number == 1
     down = force_peak:-slope/force_peak:0;
     f0 = [up, down];
     f1 = zeros(1,length(f0));
-    
+
+% Trajectory 2: a half-8-shape
 elseif trajectory_number == 2
     slope = 300000; %32 steps, 10s
     force_peak = 1500; % [N]
@@ -45,6 +47,7 @@ elseif trajectory_number == 2
     f0 = [up, down, -up, -down];
     f1 = [up, up + force_peak, down + force_peak, down];
     
+% Trajectory 3: a (full) 8-shape
 elseif trajectory_number == 3
     slope = 600000; %32 steps, 10s
     force_peak = 1500; % [N]
@@ -139,32 +142,3 @@ subplot(2,2,2); plot(x(1:end,2)); hold on; plot(p1'); legend('read values','desi
 subplot(2,2,3); plot(x(1:end,3)); hold on; plot(p2'); legend('read values','desired values'); xlabel('time steps'); ylabel('pressures [mBar]'); title('chamber 3');
 subplot(2,2,4); plot(x(1:end,4)); hold on; plot(p3'); legend('read values','desired values'); xlabel('time steps'); ylabel('pressures [mBar]'); title('chamber 4');
 % title('comparison between desired and actual pressure values');
-
-% % x = zeros(1000,16);
-% % tic
-% % for i=1:100
-% %     x(i,:) = vtem_control.get_all_pressures;
-% %     vtem_control.set_single_pressure(valveIdx, 100); % here you set pressure!
-% %     vtem_control.set_single_pressure(valveIdx + 1, 100);
-% %     vtem_control.set_single_pressure(valveIdx + 2, 100);
-% %     vtem_control.set_single_pressure(valveIdx + 3, 100);
-% % %     vtem_control.set_all_pressures([100*ones(4,1); zeros(12,1)]);
-% %     if vtem_control.get_single_pressure(valveIdx) > 90 && vtem_control.get_single_pressure(valveIdx+1) > 90 && vtem_control.get_single_pressure(valveIdx+2) > 90 && vtem_control.get_single_pressure(valveIdx+3)
-% %         disp(toc);
-% %     end
-% %     pause(0.1);
-% % end
-% % 
-% % vtem_control.set_single_pressure(valveIdx, 0); % here you set pressure!
-% % vtem_control.set_single_pressure(valveIdx + 1, 0);
-% % vtem_control.set_single_pressure(valveIdx + 2, 0);
-% % vtem_control.set_single_pressure(valveIdx + 3, 0);
-% % tic
-% % % figure
-% % for i = 1:150
-% %     x(i,:) = vtem_control.get_all_pressures;
-% %     
-% %     if vtem_control.get_single_pressure(valveIdx) > 97 && vtem_control.get_single_pressure(valveIdx+1) > 97 && vtem_control.get_single_pressure(valveIdx+2) > 97 && vtem_control.get_single_pressure(valveIdx+3) > 97
-% %         disp(toc);
-% %     end
-% % end
