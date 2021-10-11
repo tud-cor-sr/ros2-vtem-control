@@ -9,6 +9,7 @@ classdef VtemControl < handle
       cpx_input_offset_ = 4;
       cpx_output_offset_ = 3;
       num_slots_ = 8;
+      num_valves_ = 16;
    end
    methods(Static)
       function [slotIdx, slotRemain] = get_slot_idx_from_valve_idx(valveIdx)
@@ -17,9 +18,13 @@ classdef VtemControl < handle
       end
    end
    methods
-      function obj = VtemControl(DeviceAddress, Port)
+       function obj = VtemControl(DeviceAddress, Port, NumValves)
          obj.DeviceAddress_ = DeviceAddress;
          obj.Port_ = Port;
+         if nargin > 2
+            obj.num_slots_ = ceil(NumValves / 2);
+            obj.num_valves_ = NumValves;
+         end
       end
       function connect(obj)
          obj.ctx_ = modbus('tcpip', obj.DeviceAddress_, obj.Port_);
@@ -209,6 +214,15 @@ classdef VtemControl < handle
          sampling_rate = 20; % frequency with which we check the currently activate valve mode
          
          obj.set_all_motion_apps(des_valve_mode, des_app_control);
+         for slotIdx = 0:1:(obj.num_slots_-1)
+             % potentially only activate last slot partly
+             if slotIdx == (obj.num_slots_-1) && obj.num_valves_ < 2*obj.num_slots_
+                % only activate the first valve of the slot
+                obj.set_single_motion_app(slotIdx, des_valve_mode, 2);
+             else
+                obj.set_single_motion_app(slotIdx, des_valve_mode, des_app_control);
+             end
+        end
 
          i = 0;
          config_mismatch = true;
@@ -245,9 +259,8 @@ classdef VtemControl < handle
          exhaust_duration = 1; % [s] duration to let valve exhaust before shutting off motion app
 
          % Set valves to 0 bar (off).
-         for slotIdx = 0:1:(obj.num_slots_-1)
-            obj.set_single_pressure(2*slotIdx, 0);
-            obj.set_single_pressure(2*slotIdx + 1, 0);
+         for valveIdx = 0:1:(obj.num_valves_-1)
+            obj.set_single_pressure(valveIdx, 0);
          end
 
          % take some time to release pressure before shutting of the motion app
@@ -309,13 +322,13 @@ classdef VtemControl < handle
          write(obj.ctx_, 'holdingregs', addr, value, 'int16');
       end
       function pressures = get_all_pressures(obj)
-          pressures = zeros(2*obj.num_slots_, 1);
-          for valveIdx = 0:1:(2*obj.num_slots_-1)
+          pressures = zeros(obj.num_valves_, 1);
+          for valveIdx = 0:1:(obj.num_valves_-1)
               pressures(valveIdx + 1) = obj.get_single_pressure(valveIdx);
           end
       end
       function set_all_pressures(obj, pressures)
-          for valveIdx = 0:1:(2*obj.num_slots_-1)
+          for valveIdx = 0:1:(obj.num_valves_-1)
               obj.set_single_pressure(valveIdx, pressures(valveIdx + 1));
           end
       end
