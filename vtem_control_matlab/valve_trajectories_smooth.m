@@ -136,9 +136,11 @@ pause(0.3);
 vtem_control.set_all_pressures(zeros(16,1));
 vtem_control.deactivate_pressure_regulation_all_slots;
 
-figure; 
+figure;
+title('Desired and actual pressure values');
 subplot(2,2,1); plot(x(1:end,1)); hold on; plot(p0'); legend('read values','desired values'); xlabel('time steps'); ylabel('pressures [mBar]'); title('chamber 1');
 subplot(2,2,2); plot(x(1:end,2)); hold on; plot(p1'); legend('read values','desired values'); xlabel('time steps'); ylabel('pressures [mBar]'); title('chamber 2');
 subplot(2,2,3); plot(x(1:end,3)); hold on; plot(p2'); legend('read values','desired values'); xlabel('time steps'); ylabel('pressures [mBar]'); title('chamber 3');
-subplot(2,2,4); plot(x(1:end,4)); hold on; plot(p3'); legend('read values','desired values'); xlabel('time steps'); ylabel('pressures [mBar]'); title('chamber 4');
-% title('comparison between desired and actual pressure values');
+if nchambers==4
+    subplot(2,2,4); plot(x(1:end,4)); hold on; plot(p3'); legend('read values','desired values'); xlabel('time steps'); ylabel('pressures [mBar]'); title('chamber 4');
+end
