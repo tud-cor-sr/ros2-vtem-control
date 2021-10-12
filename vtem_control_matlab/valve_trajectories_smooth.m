@@ -1,14 +1,14 @@
 % close all; clear;
 
 %% parameters
-nchambers = 4;
+nchambers = 3;
 rp = 0.1; % distance between center of pressure force and the axis
 alpha_p = 100; % maps pressure to force. 1mbar = 100N/m2
 alpha = rp * alpha_p;% parameter to be assigned
 p_offset = 150; % preload pressure value in one chamber
 
 %% Trajectories
-trajectory_number = 1;
+trajectory_number = 3;
 
 % Trajectory 1: 1D bending
 if trajectory_number == 1
@@ -30,10 +30,17 @@ elseif trajectory_number == 2
     
 % Trajectory 3: a (full) 8-shape
 elseif trajectory_number == 3
-    slope = 600000; %32 steps, 10s
+    slope = 300000; %32 steps, 10s
     force_peak = 1500; % [N]
     up = 0:slope/force_peak:force_peak;
     down = force_peak:-slope/force_peak:0;
+    f0 = [up, down, -up, -down, up, down, -up, -down];
+    f1 = [up, up + force_peak, down + force_peak, down, -up, -up - force_peak, -down - force_peak, -down];
+    % Code BEP21 group:
+    % @BEP21: Please think about what the difference is and possibly
+    % integrate into a new trajectory id
+    % f0 = [up, up + force_peak, down + force_peak, down, -up, -up - force_peak, -down - force_peak, -down];
+    % f1 = [up, down, -up, -down, up, down, -up, -down];
 
 % Trajectory 4: probably a circle (BEP21)
 elseif trajectory_number == 4
@@ -82,6 +89,7 @@ elseif nchambers == 3
     p2 = pp(3,:) - min([zeros(1,length(pp));pp(1,:);pp(2,:);pp(3,:)]);
 end
 
+figure;
 subplot(4,1,1); plot(p0); title('chamber 1 desired pressure values'); ylabel('pressure [mBar]'); xlabel('time steps');
 subplot(4,1,2); plot(p1); title('chamber 2 desired pressure values'); ylabel('pressure [mBar]'); xlabel('time steps');
 subplot(4,1,3); plot(p2); title('chamber 3 desired pressure values'); ylabel('pressure [mBar]'); xlabel('time steps');
@@ -91,8 +99,6 @@ end
 
 % suptitle('trajectory 1 desired pressure values');
 % figure; plot(f0,f1); xlabel('f0 [N]'), ylabel('f1 [N]'); title('forces in x and y');
-
-return;
 
 %% Initialise VTEM
 vtem_control = VtemControl("192.168.4.3", 502, nchambers);
