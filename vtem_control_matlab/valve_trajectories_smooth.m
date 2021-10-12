@@ -91,24 +91,31 @@ end
 % suptitle('trajectory 1 desired pressure values');
 % figure; plot(f0,f1); xlabel('f0 [N]'), ylabel('f1 [N]'); title('forces in x and y');
 
-x = zeros(length(pp),16);
-
-vtem_control.set_all_pressures([round(1*p_offset/4)*ones(4,1);zeros(12,1)]);
-pause(0.3);
-vtem_control.set_all_pressures([round(2*p_offset/4)*ones(4,1);zeros(12,1)]);
-pause(0.3);
-vtem_control.set_all_pressures([round(3*p_offset/4)*ones(4,1);zeros(12,1)]);
-pause(0.3);
-vtem_control.set_all_pressures([4*p_offset/4*ones(4,1);zeros(12,1)]);
-
-%vtem_control.set_all_pressures(zeros(16,1));
-while vtem_control.get_single_pressure(0) < 147 && vtem_control.get_single_pressure(1) < 147 && vtem_control.get_single_pressure(2) < 147 && vtem_control.get_single_pressure(valveIdx+3) < 147
-    disp('not ready yet')
+% slowely scale up the pressure in all chambers
+for frac_p=0:0.25:1
+    vtem_control.set_all_pressures(round(frac_p*p_offset)*ones(nchambers,1));
+    pause(0.3);
 end
+
+offset_pressure_reached = false;
+while offset_pressure_reached ~= true
+    offset_pressure_reached = true;
+    for valveIdx=0:1:nchambers
+        if vtem_control.get_single_pressure(valveIdx) < 0.98*p_offset
+            offset_pressure_reached = false;
+            break;
+        end
+    end
+    disp('waiting to reach offset pressure...')
+    pause(0.25);
+end
+
 pause(5);
+
 tic
+x = zeros(length(pp), nchambers);
 for i=1:1:length(pp)
-    x(i,:) =  (vtem_control.get_all_pressures)';
+    x(i,:) =  (vtem_control.get_all_pressures())';
     
     vtem_control.set_single_pressure(0, round(p0(i))); % here you set pressure!
     vtem_control.set_single_pressure(1, round(p1(i)));
@@ -120,12 +127,10 @@ for i=1:1:length(pp)
 end
 toc
 
-vtem_control.set_all_pressures([round(3*p_offset/4)*ones(4,1);zeros(12,1)]);
-pause(0.3);
-vtem_control.set_all_pressures([round(2*p_offset/4)*ones(4,1);zeros(12,1)]);
-pause(0.3);
-vtem_control.set_all_pressures([round(1*p_offset/4)*ones(4,1);zeros(12,1)]);
-pause(0.3);
+for frac_p=1:-0.25:0
+    vtem_control.set_all_pressures(round(frac_p*p_offset)*ones(nchambers,1));
+    pause(0.3);
+end
 
 % deactivate pressure regulation
 if vtem_control.deactivate_pressure_regulation_all_slots() == false
