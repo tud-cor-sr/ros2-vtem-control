@@ -41,13 +41,14 @@ elseif trajectory_number == 4
     force_peak = 3000; % [N] 
     up = 0:slope/force_peak:force_peak;
     down = force_peak:-slope/force_peak:0;
-    f0 = [];
-    f1 = [];
-    for i = 1:1:10
-        f0 = [f0, cos(i*0.2*pi)*[up, down]];
-        f1 = [f1, sin(i*0.2*pi)*[up, down]];
+    num_reps = 10;
+    l_seq = length(up)+length(down);
+    f0 = zeros(1, num_reps*l_seq);
+    f1 = zeros(1, num_reps*l_seq);
+    for i = 1:1:num_reps
+        f0(1, (i-1)*l_seq+1:i*l_seq) = cos(i*0.2*pi)*[up, down];
+        f1(1, (i-1)*l_seq+1:i*l_seq) = sin(i*0.2*pi)*[up, down];
     end
-    
 end
 
 %% Generate pressure sequences for trajectories
