@@ -1,23 +1,17 @@
 % close all; clear;
 
 % parameters
-valveIdx = 0; % test valves 0 to 15
-commandPressure = 450; % [mBar]
-endPressure = 0;
+nchambers = 4;
 
-vtem_control = VtemControl("192.168.4.3", 502);
+vtem_control = VtemControl("192.168.4.3", 502, nchambers);
 vtem_control.connect();
 
 % Acknowledge errors
-vtem_control.set_all_motion_apps(62, 1);
+vtem_control.acknowledge_errors_all_slots();
 
-vtem_control.set_all_motion_apps(3, 1);
-
-pause(5);
-
-vtem_control.activate_pressure_regulation_all_slots();
-
-pause(15);
+if vtem_control.activate_pressure_regulation_all_slots() == false
+    throw(MException("valve_test:activate_pressure_regulation_single_slot", "Failed to activate pressure regulation."))
+end
 
 %% parameters
 rp = 0.1; % distance between center of pressure force and the axis
@@ -27,7 +21,6 @@ p_offset = 150; % preload pressure value in one chamber
 
 %% Trajectories
 trajectory_number = 3;
-nchambers = 4;
 
 % Trajectory 1: 1D bending
 if trajectory_number == 1
@@ -109,7 +102,7 @@ pause(0.3);
 vtem_control.set_all_pressures([4*p_offset/4*ones(4,1);zeros(12,1)]);
 
 %vtem_control.set_all_pressures(zeros(16,1));
-while vtem_control.get_single_pressure(valveIdx) < 147 && vtem_control.get_single_pressure(valveIdx+1) < 147 && vtem_control.get_single_pressure(valveIdx+2) < 147 && vtem_control.get_single_pressure(valveIdx+3) < 147
+while vtem_control.get_single_pressure(0) < 147 && vtem_control.get_single_pressure(1) < 147 && vtem_control.get_single_pressure(2) < 147 && vtem_control.get_single_pressure(valveIdx+3) < 147
     disp('not ready yet')
 end
 pause(5);
@@ -117,11 +110,11 @@ tic
 for i=1:1:length(pp)
     x(i,:) =  (vtem_control.get_all_pressures)';
     
-    vtem_control.set_single_pressure(valveIdx, round(p0(i))); % here you set pressure!
-    vtem_control.set_single_pressure(valveIdx + 1, round(p1(i)));
-    vtem_control.set_single_pressure(valveIdx + 2, round(p2(i)));
+    vtem_control.set_single_pressure(0, round(p0(i))); % here you set pressure!
+    vtem_control.set_single_pressure(1, round(p1(i)));
+    vtem_control.set_single_pressure(2, round(p2(i)));
     if nchambers == 4
-        vtem_control.set_single_pressure(valveIdx + 3, round(p3(i)));
+        vtem_control.set_single_pressure(3, round(p3(i)));
     end
     pause(0.1); % 10Hz
 end
@@ -133,8 +126,9 @@ vtem_control.set_all_pressures([round(2*p_offset/4)*ones(4,1);zeros(12,1)]);
 pause(0.3);
 vtem_control.set_all_pressures([round(1*p_offset/4)*ones(4,1);zeros(12,1)]);
 pause(0.3);
-vtem_control.set_all_pressures(zeros(16,1));
-vtem_control.deactivate_pressure_regulation_all_slots;
+
+% deactivate pressure regulation
+vtem_control.deactivate_pressure_regulation_all_slots();
 
 figure;
 title('Desired and actual pressure values');
