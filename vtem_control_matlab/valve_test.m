@@ -35,6 +35,9 @@ if vtem_control.deactivate_pressure_regulation_single_slot(slotIdx) == false
     throw(MException("valve_test:deactivate_pressure_regulation_single_slot", "Failed to deactivate pressure regulation."))
 end
 
+% disconnect
+vtem_control.disconnect();
+
 figure
 plot(t,x,t,x_des);
 

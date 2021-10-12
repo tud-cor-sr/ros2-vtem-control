@@ -128,7 +128,12 @@ vtem_control.set_all_pressures([round(1*p_offset/4)*ones(4,1);zeros(12,1)]);
 pause(0.3);
 
 % deactivate pressure regulation
-vtem_control.deactivate_pressure_regulation_all_slots();
+if vtem_control.deactivate_pressure_regulation_all_slots() == false
+    throw(MException("valve_test:deactivate_pressure_regulation_single_slot", "Failed to deactivate pressure regulation."))
+end
+
+% disconnect
+vtem_control.disconnect();
 
 figure;
 title('Desired and actual pressure values');
