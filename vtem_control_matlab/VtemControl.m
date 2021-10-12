@@ -251,7 +251,7 @@ classdef VtemControl < handle
          end
 
          % take some time to release pressure before shutting of the motion app
-         wait(exhaust_duration);
+         pause(exhaust_duration);
          
          obj.set_all_motion_apps(des_valve_mode, des_app_control);
 
