@@ -1,26 +1,14 @@
 % close all; clear;
 
-% parameters
-nchambers = 4;
-
-vtem_control = VtemControl("192.168.4.3", 502, nchambers);
-vtem_control.connect();
-
-% Acknowledge errors
-vtem_control.acknowledge_errors_all_slots();
-
-if vtem_control.activate_pressure_regulation_all_slots() == false
-    throw(MException("valve_test:activate_pressure_regulation_single_slot", "Failed to activate pressure regulation."))
-end
-
 %% parameters
+nchambers = 4;
 rp = 0.1; % distance between center of pressure force and the axis
 alpha_p = 100; % maps pressure to force. 1mbar = 100N/m2
 alpha = rp * alpha_p;% parameter to be assigned
 p_offset = 150; % preload pressure value in one chamber
 
 %% Trajectories
-trajectory_number = 3;
+trajectory_number = 1;
 
 % Trajectory 1: 1D bending
 if trajectory_number == 1
@@ -46,12 +34,24 @@ elseif trajectory_number == 3
     force_peak = 1500; % [N]
     up = 0:slope/force_peak:force_peak;
     down = force_peak:-slope/force_peak:0;
-    f0 = [up, down, -up, -down, up, down, -up, -down];
-    f1 = [up, up + force_peak, down + force_peak, down, -up, -up - force_peak, -down - force_peak, -down];
+
+% Trajectory 4: probably a circle (BEP21)
+elseif trajectory_number == 4
+    slope = 600000; % 32 time steps instead of 38, around 10s traj
+    force_peak = 3000; % [N] 
+    up = 0:slope/force_peak:force_peak;
+    down = force_peak:-slope/force_peak:0;
+    f0 = [];
+    f1 = [];
+    for i = 1:1:10
+        f0 = [f0, cos(i*0.2*pi)*[up, down]];
+        f1 = [f1, sin(i*0.2*pi)*[up, down]];
+    end
+    
 end
 
-
-%% four chamber case
+%% Generate pressure sequences for trajectories
+% four chamber case
 if nchambers == 4
     pp = 1 / alpha * [1/2 0; 0 1/2; -1/2 0; 0 -1/2] * [f0;f1] + p_offset;
     p0 = pp(1,:) - min([zeros(1,length(pp));pp(1,:);pp(3,:)]);
@@ -74,7 +74,7 @@ if nchambers == 4
     disp([max(p0)-min(p0) max(p1)-min(p1) max(p2)-min(p2) max(p3)-min(p3)]);
     
 elseif nchambers == 3
-%% three chamber case
+% three chamber case
     pp = 1 / alpha * [2/3 0; -1/3 1/sqrt(3); -1/3 -1/sqrt(3)] * [f0;f1] + p_offset;
     p0 = pp(1,:) - min([zeros(1,length(pp));pp(1,:);pp(2,:);pp(3,:)]);
     p1 = pp(2,:) - min([zeros(1,length(pp));pp(1,:);pp(2,:);pp(3,:)]);
@@ -90,6 +90,21 @@ end
 
 % suptitle('trajectory 1 desired pressure values');
 % figure; plot(f0,f1); xlabel('f0 [N]'), ylabel('f1 [N]'); title('forces in x and y');
+
+return;
+
+%% Initialise VTEM
+vtem_control = VtemControl("192.168.4.3", 502, nchambers);
+vtem_control.connect();
+
+% Acknowledge errors
+vtem_control.acknowledge_errors_all_slots();
+
+if vtem_control.activate_pressure_regulation_all_slots() == false
+    throw(MException("valve_test:activate_pressure_regulation_single_slot", "Failed to activate pressure regulation."))
+end
+
+%% Run trajectories
 
 % slowely scale up the pressure in all chambers
 for frac_p=0:0.25:1
@@ -132,6 +147,7 @@ for frac_p=1:-0.25:0
     pause(0.3);
 end
 
+%% Shut-down
 % deactivate pressure regulation
 if vtem_control.deactivate_pressure_regulation_all_slots() == false
     throw(MException("valve_test:deactivate_pressure_regulation_single_slot", "Failed to deactivate pressure regulation."))
@@ -140,6 +156,7 @@ end
 % disconnect
 vtem_control.disconnect();
 
+%% Plot experiment
 figure;
 title('Desired and actual pressure values');
 subplot(2,2,1); plot(x(1:end,1)); hold on; plot(p0'); legend('read values','desired values'); xlabel('time steps'); ylabel('pressures [mBar]'); title('chamber 1');
