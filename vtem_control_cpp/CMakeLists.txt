@@ -28,7 +28,7 @@ if(BUILD_WITH_ROS2)
   # find ROS dependencies
   find_package(ament_cmake REQUIRED)
   find_package(rclcpp REQUIRED)
-  find_package(vtem_control_msgs REQUIRED) 
+  find_package(pneumatic_actuation_msgs REQUIRED) 
 endif()
 
 find_package (Eigen3 REQUIRED)
@@ -42,7 +42,7 @@ include_directories(${MODBUS_INCLUDE_DIR})
 if(BUILD_WITH_ROS2)
   # input pressures subscriber node
   add_executable(input_pressures_sub_node src/input_pressures_sub_node.cpp src/VtemControl.cpp)
-  ament_target_dependencies(input_pressures_sub_node vtem_control_msgs rclcpp)
+  ament_target_dependencies(input_pressures_sub_node pneumatic_actuation_msgs rclcpp)
   target_include_directories(input_pressures_sub_node PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
@@ -50,7 +50,7 @@ if(BUILD_WITH_ROS2)
 
   # output pressures subscriber node
   add_executable(output_pressures_pub_node src/output_pressures_pub_node.cpp src/VtemControl.cpp)
-  ament_target_dependencies(output_pressures_pub_node vtem_control_msgs rclcpp)
+  ament_target_dependencies(output_pressures_pub_node pneumatic_actuation_msgs rclcpp)
   target_include_directories(output_pressures_pub_node PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)

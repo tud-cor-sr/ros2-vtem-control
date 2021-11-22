@@ -2,8 +2,8 @@
 #include <stdexcept>
 
 #include "rclcpp/rclcpp.hpp"
+#include "pneumatic_actuation_msgs/msg/fluid_pressures.hpp"
 #include "VtemControl.hpp"
-#include "vtem_control_msgs/msg/fluid_pressures.hpp"
 
 using namespace std::chrono_literals;
 
@@ -31,7 +31,7 @@ public:
     this->declare_parameter<int>("num_valves", 16);
     this->get_parameter("num_valves", num_valves_);
 
-    publisher_ = this->create_publisher<vtem_control_msgs::msg::FluidPressures>(vtem_output_pressures_topic_.c_str(), 10);
+    publisher_ = this->create_publisher<pneumatic_actuation_msgs::msg::FluidPressures>(vtem_output_pressures_topic_.c_str(), 10);
     timer_ = this->create_wall_timer(std::chrono::microseconds((int) (1000000 / pub_freq_)), std::bind(&OutputPressuresPub::timer_callback, this));
     
     // Create VtemControl object
@@ -53,7 +53,7 @@ private:
     std::vector<int> output_pressures_mbar(num_valves_);
     vtemControl_->get_all_pressures(&output_pressures_mbar);
 
-    auto msg = vtem_control_msgs::msg::FluidPressures();
+    auto msg = pneumatic_actuation_msgs::msg::FluidPressures();
     msg.header.stamp = OutputPressuresPub::get_clock()->now();
     std::vector<sensor_msgs::msg::FluidPressure> fluid_pressure_msgs(output_pressures_mbar.size());
 
@@ -72,7 +72,7 @@ private:
     RCLCPP_INFO(this->get_logger(), "I published FluidPressures with actual pressure [0]: %d mBar", (int) (msg.data[0].fluid_pressure/100));
   }
   rclcpp::TimerBase::SharedPtr timer_;
-  rclcpp::Publisher<vtem_control_msgs::msg::FluidPressures>::SharedPtr publisher_;
+  rclcpp::Publisher<pneumatic_actuation_msgs::msg::FluidPressures>::SharedPtr publisher_;
   size_t count_;
 
   std::string vtem_output_pressures_topic_;
