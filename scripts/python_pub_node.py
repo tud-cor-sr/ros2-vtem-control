@@ -2,7 +2,7 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 
-from vtem_control_msgs.msg import FluidPressures
+from pneumatic_actuation_msgs.msg import FluidPressures
 from sensor_msgs.msg import FluidPressure
 
 
