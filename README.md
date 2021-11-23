@@ -18,7 +18,7 @@ colcon build --packages-select vtem_control_cpp vtem_control_msgs
 ros2 launch vtem_control_cpp vtem_control_launch.py
 ```
 
-#### Run subscriber node to send input pressures to VTEM
+### Run subscriber node to send input pressures to VTEM
 
 ```bash
 ros2 run vtem_control_cpp input_pressures_sub_node
@@ -30,7 +30,7 @@ ros2 run vtem_control_cpp input_pressures_sub_node
 ros2 run vtem_control_cpp output_pressures_pub_node
 ```
 
-#### Run valve test
+### Run valve test
 
 ```bash
 ros2 run vtem_control_cpp valve_test
