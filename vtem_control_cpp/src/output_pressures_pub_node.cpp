@@ -4,6 +4,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "pneumatic_actuation_msgs/msg/fluid_pressures.hpp"
+#include "std_msgs/msg/bool.hpp"
 #include "std_msgs/msg/float64_multi_array.hpp"
 #include "VtemControl.hpp"
 
@@ -32,12 +33,15 @@ public:
 
     // VTEM output pressures topic
     this->declare_parameter<std::string>("output_pressures_topic", "output_pressures");
-    this->get_parameter("output_pressures_topic", vtem_output_pressures_topic_);
+    this->get_parameter("output_pressures_topic", output_pressures_topic_);
     this->declare_parameter<std::string>("output_pressures_array_topic", "output_pressures_array");
-    this->get_parameter("output_pressures_array_topic", vtem_output_pressures_array_topic_);
+    this->get_parameter("output_pressures_array_topic", output_pressures_array_topic_);
+    this->declare_parameter<std::string>("vtem_status_topic", "vtem_status");
+    this->get_parameter("vtem_status_topic", vtem_status_topic_);
 
-    publisher_ = this->create_publisher<pneumatic_actuation_msgs::msg::FluidPressures>(vtem_output_pressures_topic_.c_str(), 10);
-    publisher_array_ = this->create_publisher<std_msgs::msg::Float64MultiArray>(vtem_output_pressures_array_topic_.c_str(), 10);
+    pub_pressures_ = this->create_publisher<pneumatic_actuation_msgs::msg::FluidPressures>(output_pressures_topic_.c_str(), 10);
+    pub_pressures_array_ = this->create_publisher<std_msgs::msg::Float64MultiArray>(output_pressures_array_topic_.c_str(), 10);
+    pub_vtem_status_ = this->create_publisher<std_msgs::msg::Bool>(vtem_status_topic_.c_str(), 10);
     
     // Create VtemControl object
     this->vtemControl_ = std::unique_ptr<vtem_control::VtemControl>(new vtem_control::VtemControl(modbus_node_.c_str(), modbus_service_.c_str(), num_valves_));
@@ -55,6 +59,12 @@ public:
 private:
   void timer_callback()
   {
+    // publish vtem status
+    bool vtem_status = vtemControl_->is_pressure_regulation_active();
+    auto msg_vtem_status = std_msgs::msg::Bool();
+    msg_vtem_status.data = vtem_status;
+    pub_vtem_status_->publish(msg_vtem_status);
+
     std::vector<int> output_pressures_mbar(num_valves_);
     vtemControl_->get_all_pressures(&output_pressures_mbar);
 
@@ -86,18 +96,20 @@ private:
     msg.data = fluid_pressure_msgs;
     msg_multi_array.data = output_pressures;
 
-    publisher_->publish(msg);
-    publisher_array_->publish(msg_multi_array);
+    pub_pressures_->publish(msg);
+    pub_pressures_array_->publish(msg_multi_array);
 
     RCLCPP_INFO(this->get_logger(), "I published FluidPressures with actual pressure [0]: %d mBar", (int) (msg.data[0].fluid_pressure/100));
   }
   rclcpp::TimerBase::SharedPtr timer_;
-  rclcpp::Publisher<pneumatic_actuation_msgs::msg::FluidPressures>::SharedPtr publisher_;
-  rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr publisher_array_;
+  rclcpp::Publisher<pneumatic_actuation_msgs::msg::FluidPressures>::SharedPtr pub_pressures_;
+  rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr pub_pressures_array_;
+  rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr pub_vtem_status_;
   size_t count_;
 
-  std::string vtem_output_pressures_topic_;
-  std::string vtem_output_pressures_array_topic_;
+  std::string output_pressures_topic_;
+  std::string output_pressures_array_topic_;
+  std::string vtem_status_topic_;
 
   float pub_freq_;
   std::string modbus_node_;

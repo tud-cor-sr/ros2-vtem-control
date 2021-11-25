@@ -19,7 +19,7 @@ def generate_launch_description():
             executable='output_pressures_pub_node',
             parameters=[
                 common_params,
-                {"output_pressures_topic": "output_pressures", "pub_freq": 50.}
+                {"output_pressures_topic": "output_pressures", "pub_freq": 50., "vtem_status_topic": 'vtem_status'}
             ]
         ),
     ])

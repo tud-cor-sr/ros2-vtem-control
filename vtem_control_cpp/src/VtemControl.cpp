@@ -366,6 +366,17 @@ void vtem_control::VtemControl::set_single_pressure(const int valve_idx, const i
     }
 }
 
+bool vtem_control::VtemControl::is_pressure_regulation_active() {
+    ensure_connection();
+
+    bool vtem_readiness = true;
+    for (auto slot_idx = 0; slot_idx < (num_slots_); slot_idx++) {
+        vtem_readiness = vtem_readiness && ensure_motion_app(slot_idx, 3, 2, false);
+    }
+
+    return vtem_readiness;
+}
+
 void vtem_control::VtemControl::get_all_pressures(std::vector<int> *output) {
     ensure_connection();
 
