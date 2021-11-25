@@ -10,7 +10,7 @@ def generate_launch_description():
             executable='input_pressures_sub_node',
             parameters=[
                 common_params,
-                {"input_pressures_topic": "input_pressures", "max_pressure": 300*100}
+                {"input_pressures_topic": "input_pressures", "max_pressure": 300*100.0}
             ]
         ),
         Node(

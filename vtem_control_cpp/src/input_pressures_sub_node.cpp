@@ -30,7 +30,7 @@ public:
     this->get_parameter("num_valves", num_valves_);
 
     // Safety feature: maximum pressure allowed
-    this->declare_parameter<double>("max_pressure", 300*100); // [Pa]
+    this->declare_parameter<double>("max_pressure", 300*100.0); // [Pa]
     this->get_parameter("max_pressure", max_pressure_);
 
     subscription_ = this->create_subscription<pneumatic_actuation_msgs::msg::FluidPressures>(
