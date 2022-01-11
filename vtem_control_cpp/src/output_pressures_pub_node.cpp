@@ -99,7 +99,7 @@ private:
     pub_pressures_->publish(msg);
     pub_pressures_array_->publish(msg_multi_array);
 
-    RCLCPP_INFO(this->get_logger(), "I published FluidPressures with actual pressure [0]: %d mBar", (int) (msg.data[0].fluid_pressure/100));
+    // RCLCPP_INFO(this->get_logger(), "I published FluidPressures with actual pressure [0]: %d mBar", (int) (msg.data[0].fluid_pressure/100));
   }
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<pneumatic_actuation_msgs::msg::FluidPressures>::SharedPtr pub_pressures_;
