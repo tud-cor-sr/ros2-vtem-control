@@ -94,6 +94,10 @@ elseif nchambers == 3
     p0 = pp(1,:) - min([zeros(1,length(pp));pp(1,:);pp(2,:);pp(3,:)]);
     p1 = pp(2,:) - min([zeros(1,length(pp));pp(1,:);pp(2,:);pp(3,:)]);
     p2 = pp(3,:) - min([zeros(1,length(pp));pp(1,:);pp(2,:);pp(3,:)]);
+
+    p0 = smooth(p0);
+    p1 = smooth(p1);
+    p2 = smooth(p2);
 end
 
 figure;
