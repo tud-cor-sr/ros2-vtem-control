@@ -5,15 +5,15 @@ nchambers = 3;
 rp = 0.1; % distance between center of pressure force and the axis
 alpha_p = 100; % maps pressure to force. 1mbar = 100N/m2
 alpha = rp * alpha_p;% parameter to be assigned
-p_offset = 150; % preload pressure value in one chamber
+p_offset = 200; % preload pressure value in one chamber
 
 %% Trajectories
-trajectory_number = 3;
+trajectory_number = 1;
 
 % Trajectory 1: 1D bending
 if trajectory_number == 1
     slope = 600000; % 32 time steps instead of 38, around 10s traj
-    force_peak = 3000; % [N] 
+    force_peak = 3300; % [N] 
     up = 0:slope/force_peak:force_peak;
     down = force_peak:-slope/force_peak:0;
     f0 = [up, down];
@@ -22,7 +22,7 @@ if trajectory_number == 1
 % Trajectory 2: a half-8-shape
 elseif trajectory_number == 2
     slope = 300000; %32 steps, 10s
-    force_peak = 1500; % [N]
+    force_peak = 1800; % [N]
     up = 0:slope/force_peak:force_peak;
     down = force_peak:-slope/force_peak:0;
     f0 = [up, down, -up, -down];
@@ -31,7 +31,7 @@ elseif trajectory_number == 2
 % Trajectory 3: a (full) 8-shape
 elseif trajectory_number == 3
     slope = 300000; %32 steps, 10s
-    force_peak = 1500; % [N]
+    force_peak = 1700; % [N]
     up = 0:slope/force_peak:force_peak;
     down = force_peak:-slope/force_peak:0;
     f0 = [up, down, -up, -down, up, down, -up, -down];
@@ -45,17 +45,40 @@ elseif trajectory_number == 3
 % Trajectory 4: probably a circle (BEP21)
 elseif trajectory_number == 4
     slope = 600000; % 32 time steps instead of 38, around 10s traj
-    force_peak = 3000; % [N] 
+    force_peak = 2800; % [N] 
     up = 0:slope/force_peak:force_peak;
     down = force_peak:-slope/force_peak:0;
-    num_reps = 10;
-    l_seq = length(up)+length(down);
-    f0 = zeros(1, num_reps*l_seq);
-    f1 = zeros(1, num_reps*l_seq);
-    for i = 1:1:num_reps
-        f0(1, (i-1)*l_seq+1:i*l_seq) = cos(i*0.2*pi)*[up, down];
-        f1(1, (i-1)*l_seq+1:i*l_seq) = sin(i*0.2*pi)*[up, down];
+    f0=[];
+    f1=[];
+    for i = 1:1:18
+        f0= [f0,cos(i*2/18*pi)*[up, down]];
+        f1= [f1,sin(i*2/18*pi)*[up, down]];
     end
+
+
+% Trajectory 5: a (full) 8-shape rotating (BEP21)
+elseif trajectory_number == 5
+    slope = 300000; %32 steps, 10s
+    force_peak = 1750; % [N]
+    up = 0:slope/force_peak:force_peak;
+    down = force_peak:-slope/force_peak:0;
+    f0=[];
+    f1=[];
+    for i = 1:1:6
+        f0 = [f0, cos(i*2/6*pi)*[up, down, -up, -down, up, down, -up, -down]];
+        f1 = [f1, sin(i*2/6*pi)*[up, up + force_peak, down + force_peak, down, -up, -up - force_peak, -down - force_peak, -down]];
+    end
+    
+    elseif trajectory_number == 6
+    slope = 300000; %32 steps, 10s
+    force_peak = 1800; % [N]
+    up = 0:slope/force_peak:force_peak;
+    down = force_peak:-slope/force_peak:0;
+    f0 = [up, down, -up, -down, up, down, -up, -down];
+    f1 = [up, up + force_peak, down + force_peak, down, -up, -up - force_peak, -down - force_peak, -down];
+    % f0 = [up, up + force_peak, down + force_peak, down, -up, -up - force_peak, -down - force_peak, -down];
+    % f1 = [up, down, -up, -down, up, down, -up, -down];
+
 end
 
 
