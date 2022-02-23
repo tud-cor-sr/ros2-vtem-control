@@ -58,6 +58,13 @@ elseif trajectory_number == 4
     end
 end
 
+
+figure; plot(f0,f1); xlabel('f0 [N]'), ylabel('f1 [N]'); title('forces in x and y');
+figure;
+subplot(2,1,1); plot(p0); title('f_x'); ylabel('f [N]'); xlabel('time steps');
+subplot(2,1,2); plot(p1); title('f_y'); ylabel('f [N]'); xlabel('time steps');
+
+
 %% Generate pressure sequences for trajectories
 % four chamber case
 if nchambers == 4
@@ -96,9 +103,6 @@ subplot(4,1,3); plot(p2); title('chamber 3 desired pressure values'); ylabel('pr
 if nchambers == 4
     subplot(4,1,4); plot(p3); title('chamber 4 desired pressure values'); ylabel('pressure [mBar]'); xlabel('time steps');
 end
-
-% suptitle('trajectory 1 desired pressure values');
-% figure; plot(f0,f1); xlabel('f0 [N]'), ylabel('f1 [N]'); title('forces in x and y');
 
 %% Initialise VTEM
 vtem_control = VtemControl("192.168.4.3", 502, nchambers);
