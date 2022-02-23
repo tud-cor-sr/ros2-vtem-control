@@ -128,16 +128,17 @@ for frac_p=0:0.25:1
 end
 
 offset_pressure_reached = false;
-while offset_pressure_reached ~= true
-    offset_pressure_reached = true;
+while offset_pressure_reached == false
+    disp('waiting to reach offset pressure...')
+    pause(0.25);
     for valveIdx=0:1:nchambers
-        if vtem_control.get_single_pressure(valveIdx) < 0.98*p_offset
-            offset_pressure_reached = false;
+        if vtem_control.get_single_pressure(valveIdx) >= 0.95*p_offset
+            offset_pressure_reached = true;
+            disp('offset pressure reached!')
             break;
         end
     end
-    disp('waiting to reach offset pressure...')
-    pause(0.25);
+    
 end
 
 pause(5);
