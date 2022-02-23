@@ -12,10 +12,10 @@ colcon build --packages-select vtem_control_cpp vtem_control_msgs
 
 ### Run
 
-### Run input and output pressures nodes using launch file
+#### Run input and output pressures nodes using launch file
 
 ```bash
-ros2 launch vtem_control_cpp vtem_control_launch.py
+ros2 launch vtem_control_cpp vtem_control.launch.py
 ```
 
 #### Run subscriber node to send input pressures to VTEM
@@ -24,7 +24,7 @@ ros2 launch vtem_control_cpp vtem_control_launch.py
 ros2 run vtem_control_cpp input_pressures_sub_node
 ```
 
-### Run publisher node to grab output pressures from VTEM
+#### Run publisher node to grab output pressures from VTEM
 
 ```bash
 ros2 run vtem_control_cpp output_pressures_pub_node
@@ -36,7 +36,7 @@ ros2 run vtem_control_cpp output_pressures_pub_node
 ros2 run vtem_control_cpp valve_test
 ```
 
-### Run python publisher for input pressure step function
+#### Run python publisher for input pressure step function
 
 ```bash
 python3 scripts/python_pub_node.py
